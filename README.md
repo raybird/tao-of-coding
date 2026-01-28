@@ -54,15 +54,15 @@
 ```bash
 # 讓魯班為你撰寫測試
 cat component.js | gemini --model "gemini-3-flash-preview" \
-  -i "魯班祖師，請為此組件編寫測試案例。"
+  -p "魯班祖師，請為此組件編寫測試案例。"
 
 # 請太上老君分析架構
 cat architecture.md | gemini --model "gemini-3-pro-preview" \
-  -i "太上老君，請根據天道法則建議更好的架構設計。"
+  -p "太上老君在上，此模組邏輯混亂，請賜予重構之法。"
 
 # 讓文曲星撰寫 README
 gemini --model "gemini-3-flash-preview" \
-  -i "奉文曲星之命，為此專案撰寫一份清晰易懂的 README。"
+  -p "奉文曲星之命，為此專案撰寫一份清晰易懂的 README。"
 ```
 
 更多詳細規範與指令範例，請參閱：
@@ -147,4 +147,4 @@ sub-agents/
 
 ---
 
-*版本更新日期：2026-01-27*
+*版本更新日期：2026-01-28*
