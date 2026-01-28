@@ -36,32 +36,32 @@ metadata:
 ```bash
 # 讀取天書與指令，掃描結構
 cat skills/tao-of-coding/references/explorer.md | gemini --model "gemini-3-flash-preview" \
-  -i "請掃描當前目錄，並列出核心架構與依賴關係摘要。"
+  -p "請掃描當前目錄，並列出核心架構與依賴關係摘要。"
 ```
 
 ### 2. 請太上老君開爐 (Oracle)
 ```bash
 # 將天書、程式碼與指令一同獻祭
 cat skills/tao-of-coding/references/oracle.md complex_logic.py | gemini --model "gemini-3-pro-preview" \
-  -i "太上老君在上，此模組邏輯混亂，請賜予重構之法。"
+  -p "太上老君在上，此模組邏輯混亂，請賜予重構之法。"
 ```
 
 ### 3. 奉文曲星之命 (Librarian)
 ```bash
 cat skills/tao-of-coding/references/librarian.md raw_code.js | gemini --model "gemini-3-flash-preview" \
-  -i "奉文曲星之命，為此程式碼撰寫標準 JSDoc 文件。"
+  -p "奉文曲星之命，為此程式碼撰寫標準 JSDoc 文件。"
 ```
 
 ### 4. 魯班巧手 (Fixer)
 ```bash
 cat skills/tao-of-coding/references/fixer.md | gemini --model "gemini-3-flash-preview" \
-  -i "魯班祖師，請為這個函數編寫 Jest 單元測試，涵蓋邊界案例。"
+  -p "魯班祖師，請為這個函數編寫 Jest 單元測試，涵蓋邊界案例。"
 ```
 
 ### 5. 織女雲錦 (Designer)
 ```bash
 cat skills/tao-of-coding/references/designer.md | gemini --model "gemini-3-pro-preview" \
-  -i "織女娘娘，請設計一個現代化的登入表單，使用 Tailwind CSS。"
+  -p "織女娘娘，請設計一個現代化的登入表單，使用 Tailwind CSS。"
 ```
 
 ## 天條律令 (The Celestial Laws)
