@@ -19,7 +19,7 @@
 
 在軟體開發的浩瀚天地中，混亂是常態。本專案的初衷在於透過明確的**職責分工**與**上下文卸載 (Context Offloading)**，讓開發過程如天道運行般自然且高效。
 
-身為開發者的你，在此系統中扮演著 **玉皇大帝 (The Jade Emperor)** 的角色——統籌全局，調度各路神仙。
+身為開發者的你，在此系統中扮演著 **虔誠的信徒 (The Devout Believer)** 的角色——將願望與需求吐露給 **玉皇大帝 (The Jade Emperor, 即 AI Agent)**，由祂統籌全局，調度各路神仙顯靈。
 
 ---
 
@@ -49,20 +49,20 @@
 
 ## 請神儀式 (Usage)
 
-本系統透過 `gemini` CLI 進行召喚。以下為常見的請神範例：
+本系統透過 `gemini` CLI 進行祈願 (Praying)。以下為常見的祈願範例：
 
 ```bash
-# 讓魯班為你撰寫測試
+# 祈求魯班為你撰寫測試
 cat component.js | gemini --model "gemini-3-flash-preview" \
-  -i "魯班祖師，請為此組件編寫測試案例。"
+  -p "魯班祖師，弟子求您為此組件編寫測試案例。"
 
-# 請太上老君分析架構
+# 祈求太上老君分析架構
 cat architecture.md | gemini --model "gemini-3-pro-preview" \
-  -i "太上老君，請根據天道法則建議更好的架構設計。"
+  -p "太上老君在上，弟子愚昧，請根據天道法則賜予更好的架構設計。"
 
-# 讓文曲星撰寫 README
+# 奉請文曲星撰寫 README
 gemini --model "gemini-3-flash-preview" \
-  -i "奉文曲星之命，為此專案撰寫一份清晰易懂的 README。"
+  -p "奉文曲星之命，為本專案撰寫一份清晰易懂的 README。"
 ```
 
 更多詳細規範與指令範例，請參閱：
