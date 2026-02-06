@@ -67,7 +67,24 @@ gemini --model "gemini-3-flash-preview" \
 
 更多詳細規範與指令範例，請參閱：
 -   [Tao of Coding Protocol](skills/tao-of-coding/SKILL.md)
+-   [Tao x Superpowers 操作指引](docs/superpowers_playbook.md)
+-   [仙界神祇職能與技能對照表](docs/celestial_skill_mapping.md)
 -   [專案精神深度分析](docs/project-spirit-analysis.md)
+
+## 已導入 Superpowers 技能 (Phase 1)
+
+目前已在 `skills/superpowers/` 本地導入以下核心技能：
+
+- `brainstorming`
+- `writing-plans`
+- `executing-plans`
+- `test-driven-development`
+- `systematic-debugging`
+- `verification-before-completion`
+- `requesting-code-review`
+- `receiving-code-review`
+
+建議使用方式：先依 `skills/tao-of-coding/SKILL.md` 做角色路由，再載入對應 `skills/superpowers/<skill>/SKILL.md` 執行。
 
 ---
 
@@ -125,16 +142,28 @@ ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-coding ~/.codeium/wind
 
 ## 目錄結構
 
-```
-sub-agents/
-├── README.md                     # 本文件
+```text
+.
+├── README.md
 ├── docs/
-│   └── project-spirit-analysis.md  # 專案精神與架構分析
+│   ├── superpowers_playbook.md
+│   ├── superpowers_skills_analysis.md
+│   ├── celestial_skill_mapping.md
+│   └── project-spirit-analysis.md
 └── skills/
-    └── tao-of-coding/
-        ├── SKILL.md              # 核心協議：程式之道
-        └── references/
-            └── EXAMPLES.md       # 進階參考範例
+    ├── tao-of-coding/
+    │   ├── SKILL.md
+    │   └── references/
+    └── superpowers/
+        ├── SOURCE.md
+        ├── brainstorming/
+        ├── writing-plans/
+        ├── executing-plans/
+        ├── test-driven-development/
+        ├── systematic-debugging/
+        ├── verification-before-completion/
+        ├── requesting-code-review/
+        └── receiving-code-review/
 ```
 
 ---
