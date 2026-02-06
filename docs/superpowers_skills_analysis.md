@@ -35,3 +35,10 @@ Based on the investigation of the [obra/superpowers](https://github.com/obra/sup
 | :--- | :--- | :--- |
 | **writing-skills** | Create new skills | 創造新 Skill 的最佳實踐指南，包含測試方法論。 |
 | **using-superpowers** | Introduction to the skills system | 系統入門指南，介紹如何使用這套 Superpowers 框架。 |
+
+## 本地化註記
+
+- 上游來源：`obra/superpowers`
+- 來源 commit：`a98c5dfc9de0df5318f4980d91d24780a566ee60` (v4.2.0)
+- 本地導入目錄：`skills/superpowers/`
+- 導入狀態：Phase 1 已導入 8 項核心技能；其餘技能保留映射待後續導入

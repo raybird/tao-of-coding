@@ -27,6 +27,28 @@ metadata:
 | **魯班** | Fixer | [fixer.md](references/fixer.md) | **巧匠祖師**。實作與修復的能手。負責單元測試、語法修正。 |
 | **織女** | Designer | [designer.md](references/designer.md) | **雲錦天衣**。編織最美的雲彩（UI/UX）。負責前端畫面與體驗。 |
 
+## 技能路由表 (Skill Routing)
+
+以下為已本地化的 Superpowers 核心技能路由（目錄：`skills/superpowers/`）。
+
+| 任務類型 | 主責神祇 | 協作神祇 | 優先技能 | 技能路徑 |
+| :--- | :--- | :--- | :--- | :--- |
+| 創意發想、需求澄清、方案比較 | 太上老君 (Oracle) | 織女 (Designer) | `brainstorming` | `skills/superpowers/brainstorming/SKILL.md` |
+| 多步驟實作計畫撰寫 | 太上老君 (Oracle) | 文曲星 (Librarian) | `writing-plans` | `skills/superpowers/writing-plans/SKILL.md` |
+| 依既有計畫批次執行 | 千里眼/順風耳 (Explorer) | 魯班 (Fixer) | `executing-plans` | `skills/superpowers/executing-plans/SKILL.md` |
+| 新功能/修 Bug 的測試先行實作 | 魯班 (Fixer) | 太上老君 (Oracle) | `test-driven-development` | `skills/superpowers/test-driven-development/SKILL.md` |
+| 錯誤追因、根因定位 | 魯班 (Fixer) | 千里眼/順風耳 (Explorer) | `systematic-debugging` | `skills/superpowers/systematic-debugging/SKILL.md` |
+| 宣告完成前驗證 | 魯班 (Fixer) | 太上老君 (Oracle) | `verification-before-completion` | `skills/superpowers/verification-before-completion/SKILL.md` |
+| 發 PR/任務後請求審查 | 文曲星 (Librarian) | 太上老君 (Oracle) | `requesting-code-review` | `skills/superpowers/requesting-code-review/SKILL.md` |
+| 接收審查意見、分級處理 | 魯班 (Fixer) | 文曲星 (Librarian) | `receiving-code-review` | `skills/superpowers/receiving-code-review/SKILL.md` |
+
+### 路由準則
+
+1. 同一請求若同時涉及「策略」與「實作」，先由太上老君定義方案，再交由魯班執行。
+2. 若請求以「追查問題根因」為主，優先 `systematic-debugging`，不得先給修補方案。
+3. 若請求明示「先規劃再做」，優先 `writing-plans`，再進入 `executing-plans`。
+4. 若請求接近交付節點（commit/PR/完成宣告），強制補上 `verification-before-completion`。
+
 ## 請神儀式 (The Summoning Rituals)
 
 所有的儀式（CLI Call）皆需遵循**「無狀態 (Stateless)」天條**。
