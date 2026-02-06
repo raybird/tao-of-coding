@@ -60,6 +60,27 @@ metadata:
 | 千里眼/順風耳 (Explorer) | `executing-plans` | `systematic-debugging` |
 | 織女 (Designer) | - | `brainstorming` |
 
+## 協作交付欄位定義 (Delivery Contract)
+
+以下三個欄位為**每次任務都必填**，若缺任一欄位不得宣告完成：
+1. 每個角色的輸入/輸出文件
+2. 驗收標準（可量測）
+3. 時間盒與負責人
+
+| 角色 | 輸入文件 (Input) | 輸出文件 (Output) | 驗收標準（可量測） | 時間盒與負責人 |
+| :--- | :--- | :--- | :--- | :--- |
+| 千里眼/順風耳 (Explorer) | `README*`、`AGENTS.md`、`package.json`/`pyproject.toml`、目錄樹摘要 | `docs/scan-report.md`（架構/依賴/風險） | 1) 列出 >= 3 個核心模組；2) 列出所有一級依賴；3) 風險項目 >= 2 條且含檔案路徑 | 15-30 分鐘；主責：千里眼/順風耳 |
+| 太上老君 (Oracle) | `docs/scan-report.md`、需求描述、現有設計/流程文件 | `docs/implementation-plan.md`（方案比較與決策） | 1) 至少 2 個方案比較；2) 明確選定 1 個方案並給理由；3) 任務拆解 >= 3 個可執行步驟 | 20-40 分鐘；主責：太上老君 |
+| 文曲星 (Librarian) | `docs/implementation-plan.md`、程式差異（diff）、需求原文 | `docs/change-log.md`、`docs/usage.md` 或 API 文件更新 | 1) 文件覆蓋所有變更檔案；2) 每項變更有「目的+影響」；3) 指令/範例可直接複製執行 | 20-45 分鐘；主責：文曲星 |
+| 魯班 (Fixer) | `docs/implementation-plan.md`、目標程式檔、既有測試 | 程式修補、`tests/*`、驗證結果摘要 `docs/verification.md` | 1) 新增/更新測試且全數通過；2) 無新增 lint error；3) 至少 1 個邊界案例被測到 | 30-90 分鐘；主責：魯班 |
+| 織女 (Designer) | 使用情境、畫面需求、設計限制（品牌/裝置） | UI 變更檔、`docs/ui-spec.md`（互動與視覺規格） | 1) Desktop + Mobile 皆可用；2) 互動狀態（hover/focus/error/loading）完整；3) Lighthouse accessibility >= 90（若可執行） | 30-90 分鐘；主責：織女 |
+
+### 驗收與時程共通規則
+
+1. 任何角色輸出若未附可追溯路徑（例如 `docs/...`、`src/...`、`tests/...`），視為未完成。
+2. 若任務超過時間盒，需在 `docs/implementation-plan.md` 記錄延期原因與新的截止時間。
+3. 最終整合由玉皇大帝（主代理）負責確認五項輸出都可被下游角色直接使用，不可有斷鏈。
+
 ## 請神儀式 (The Summoning Rituals)
 
 所有的儀式（CLI Call）皆需遵循**「無狀態 (Stateless)」天條**。
