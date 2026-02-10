@@ -4,7 +4,7 @@
 
 ## 1) 何時用 Tao、何時用 Superpowers
 
-- Tao (`skills/tao-of-coding/SKILL.md`) 是「角色編排與路由層」：先判斷該請哪位神祇。
+- Tao (`skills/tao-of-coding/SKILL.md`) 是「角色編排與路由層」：先判斷該請哪位角色。
 - Superpowers (`skills/tao-of-coding/references/superpowers/*`) 是「執行技能層」：進到具體流程（TDD、debug、review...）。
 - 實務上採兩段式：先用 Tao 定位任務，再把對應的 Superpowers skill 當成執行規格。
 
@@ -35,18 +35,18 @@
 
 ### Step A: 先決定路由
 
-參考 `skills/tao-of-coding/SKILL.md` 的「技能路由表」，判斷本次任務主責神祇與優先技能。
+參考 `skills/tao-of-coding/SKILL.md` 的「技能路由表」，判斷本次任務主責角色與優先技能。
 
-### Step B: 載入角色天書 + 技能天書
+### Step B: 載入角色指南 + 技能文件
 
-建議把「角色天書」與「superpowers skill」一起送進模型，讓角色與流程同時生效。
+建議把「角色指南」與「superpowers skill」一起送進模型，讓角色與流程同時生效。
 
 ```bash
-# 範例：除錯任務（魯班 + systematic-debugging）
+# 範例：除錯任務（Fixer + systematic-debugging）
 cat skills/tao-of-coding/references/fixer.md \
     skills/tao-of-coding/references/superpowers/systematic-debugging/SKILL.md \
 | gemini --model "gemini-3-flash-preview" \
-  -p "魯班祖師，請依 systematic-debugging 四階段流程追查這個測試失敗的根因，先不要給修補方案。"
+  -p "Fixer專家，請依 systematic-debugging 四階段流程追查這個測試失敗的根因，先不要給修補方案。"
 ```
 
 ### Step C: 若技能有 reference，按需追加
@@ -64,7 +64,7 @@ cat skills/tao-of-coding/references/fixer.md \
 cat skills/tao-of-coding/references/oracle.md \
     skills/tao-of-coding/references/superpowers/brainstorming/SKILL.md \
 | gemini --model "gemini-3-pro-preview" \
-  -p "太上老君在上，請先用 brainstorming 流程澄清需求，再提出 2-3 種方案與取捨。"
+  -p "Oracle請先用 brainstorming 流程澄清需求，再提出 2-3 種方案與取捨。"
 ```
 
 ### B. 先寫計畫，再執行

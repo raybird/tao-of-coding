@@ -1,4 +1,4 @@
-# 仙界神祇職能與技能對照表 (Celestial Skill Mapping)
+# 角色職能與技能對照表 (Role Skill Mapping)
 
 本文件改為**人類閱讀用備忘**，不作為 Skill 執行參考來源。
 
@@ -11,7 +11,7 @@
 ## 快速索引
 
 - 協議主檔：`skills/tao-of-coding/SKILL.md`
-- 角色天書：
+- 角色指南：
   - `skills/tao-of-coding/references/oracle.md`
   - `skills/tao-of-coding/references/fixer.md`
   - `skills/tao-of-coding/references/librarian.md`

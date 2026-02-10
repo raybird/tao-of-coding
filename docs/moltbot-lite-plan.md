@@ -1,7 +1,7 @@
 # Moltbot Lite 專案規劃書
 
 > **文件狀態**: 草稿 (Draft)
-> **負責神祇**: 太上老君 (Oracle) - 架構設計 / 文曲星 (Librarian) - 筆錄
+> **負責角色**: Oracle - 架構設計 / Librarian - 文件整理
 > **日期**: 2026-01-28
 
 ## 1. 專案願景 (Vision)
@@ -47,7 +47,7 @@ graph TD
     *   **LLM Client**: 封裝 OpenAI / Anthropic API。
     *   **Router**: 簡單的關鍵字或語意判斷，決定是否觸發特定工具。
 
-4.  **Tools (神通)**
+4.  **Tools (能力)**
     *   **標準介面**: 定義 `name`, `description`, `execute()`。
     *   **MVP 工具**:
         *   `get_current_time`: 獲取系統時間。
@@ -65,7 +65,7 @@ graph TD
 
 ## 4. 開發路線圖 (Roadmap)
 
-### 階段一：順風耳 (The Ear) - 基礎建設
+### 階段一：基礎建設 (Foundation) - 基礎建設
 *   [ ] 初始化 TypeScript 專案結構。
 *   [ ] 實作 **Telegram Connector** (接收與發送訊息)。
 *   [ ] 建立 **Echo Bot**：驗證訊息迴路暢通。
@@ -76,7 +76,7 @@ graph TD
 *   [ ] 設計 **Conversation Memory**：使用 SQLite 儲存最近 20 輪對話。
 *   [ ] 實現基本的「聊天機器人」功能。
 
-### 階段三：千手觀音 (The Hands) - 工具調用
+### 階段三：工具層 (Tools) - 工具調用
 *   [ ] 設計 **Tool Interface**。
 *   [ ] 實作 Function Calling 機制 (讓 LLM 決定何時呼叫工具)。
 *   [ ] 實作第一個工具：`web_search`。
