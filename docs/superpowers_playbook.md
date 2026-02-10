@@ -1,23 +1,23 @@
 # Tao x Superpowers 操作指引
 
-本文件提供團隊可直接複用的操作方式，說明如何在 Tao 流程中呼叫 `skills/superpowers/*`。
+本文件提供團隊可直接複用的操作方式，說明如何在 Tao 流程中呼叫 `skills/tao-of-coding/references/superpowers/*`。
 
 ## 1) 何時用 Tao、何時用 Superpowers
 
 - Tao (`skills/tao-of-coding/SKILL.md`) 是「角色編排與路由層」：先判斷該請哪位神祇。
-- Superpowers (`skills/superpowers/*`) 是「執行技能層」：進到具體流程（TDD、debug、review...）。
+- Superpowers (`skills/tao-of-coding/references/superpowers/*`) 是「執行技能層」：進到具體流程（TDD、debug、review...）。
 - 實務上採兩段式：先用 Tao 定位任務，再把對應的 Superpowers skill 當成執行規格。
 
 ## 2) 已導入可用技能 (Phase 1)
 
-- `skills/superpowers/brainstorming/SKILL.md`
-- `skills/superpowers/writing-plans/SKILL.md`
-- `skills/superpowers/executing-plans/SKILL.md`
-- `skills/superpowers/test-driven-development/SKILL.md`
-- `skills/superpowers/systematic-debugging/SKILL.md`
-- `skills/superpowers/verification-before-completion/SKILL.md`
-- `skills/superpowers/requesting-code-review/SKILL.md`
-- `skills/superpowers/receiving-code-review/SKILL.md`
+- `skills/tao-of-coding/references/superpowers/brainstorming/SKILL.md`
+- `skills/tao-of-coding/references/superpowers/writing-plans/SKILL.md`
+- `skills/tao-of-coding/references/superpowers/executing-plans/SKILL.md`
+- `skills/tao-of-coding/references/superpowers/test-driven-development/SKILL.md`
+- `skills/tao-of-coding/references/superpowers/systematic-debugging/SKILL.md`
+- `skills/tao-of-coding/references/superpowers/verification-before-completion/SKILL.md`
+- `skills/tao-of-coding/references/superpowers/requesting-code-review/SKILL.md`
+- `skills/tao-of-coding/references/superpowers/receiving-code-review/SKILL.md`
 
 對照與分工請看 `docs/celestial_skill_mapping.md`。
 
@@ -34,7 +34,7 @@
 ```bash
 # 範例：除錯任務（魯班 + systematic-debugging）
 cat skills/tao-of-coding/references/fixer.md \
-    skills/superpowers/systematic-debugging/SKILL.md \
+    skills/tao-of-coding/references/superpowers/systematic-debugging/SKILL.md \
 | gemini --model "gemini-3-flash-preview" \
   -p "魯班祖師，請依 systematic-debugging 四階段流程追查這個測試失敗的根因，先不要給修補方案。"
 ```
@@ -42,9 +42,9 @@ cat skills/tao-of-coding/references/fixer.md \
 ### Step C: 若技能有 reference，按需追加
 
 例如 `systematic-debugging` 可依情境再附：
-- `skills/superpowers/systematic-debugging/root-cause-tracing.md`
-- `skills/superpowers/systematic-debugging/defense-in-depth.md`
-- `skills/superpowers/systematic-debugging/condition-based-waiting.md`
+- `skills/tao-of-coding/references/superpowers/systematic-debugging/root-cause-tracing.md`
+- `skills/tao-of-coding/references/superpowers/systematic-debugging/defense-in-depth.md`
+- `skills/tao-of-coding/references/superpowers/systematic-debugging/condition-based-waiting.md`
 
 ## 4) 常見任務範本（可直接貼）
 
@@ -52,7 +52,7 @@ cat skills/tao-of-coding/references/fixer.md \
 
 ```bash
 cat skills/tao-of-coding/references/oracle.md \
-    skills/superpowers/brainstorming/SKILL.md \
+    skills/tao-of-coding/references/superpowers/brainstorming/SKILL.md \
 | gemini --model "gemini-3-pro-preview" \
   -p "太上老君在上，請先用 brainstorming 流程澄清需求，再提出 2-3 種方案與取捨。"
 ```
@@ -62,13 +62,13 @@ cat skills/tao-of-coding/references/oracle.md \
 ```bash
 # 先產生計畫
 cat skills/tao-of-coding/references/oracle.md \
-    skills/superpowers/writing-plans/SKILL.md \
+    skills/tao-of-coding/references/superpowers/writing-plans/SKILL.md \
 | gemini --model "gemini-3-pro-preview" \
   -p "請為此需求輸出可執行的 implementation plan，存放到 docs/plans。"
 
 # 再按計畫執行
 cat skills/tao-of-coding/references/explorer.md \
-    skills/superpowers/executing-plans/SKILL.md \
+    skills/tao-of-coding/references/superpowers/executing-plans/SKILL.md \
 | gemini --model "gemini-3-flash-preview" \
   -p "請讀取 docs/plans/XXX.md，按 executing-plans 方式分批執行並在檢查點回報。"
 ```
@@ -77,7 +77,7 @@ cat skills/tao-of-coding/references/explorer.md \
 
 ```bash
 cat skills/tao-of-coding/references/fixer.md \
-    skills/superpowers/test-driven-development/SKILL.md \
+    skills/tao-of-coding/references/superpowers/test-driven-development/SKILL.md \
 | gemini --model "gemini-3-flash-preview" \
   -p "請用 TDD（RED-GREEN-REFACTOR）修復這個 bug，先寫會失敗的測試再實作。"
 ```
@@ -87,13 +87,13 @@ cat skills/tao-of-coding/references/fixer.md \
 ```bash
 # 請求 code review
 cat skills/tao-of-coding/references/librarian.md \
-    skills/superpowers/requesting-code-review/SKILL.md \
+    skills/tao-of-coding/references/superpowers/requesting-code-review/SKILL.md \
 | gemini --model "gemini-3-flash-preview" \
   -p "請依 requesting-code-review 流程整理本次變更的 review 請求。"
 
 # 接收 code review
 cat skills/tao-of-coding/references/fixer.md \
-    skills/superpowers/receiving-code-review/SKILL.md \
+    skills/tao-of-coding/references/superpowers/receiving-code-review/SKILL.md \
 | gemini --model "gemini-3-flash-preview" \
   -p "請依 receiving-code-review 規範處理 reviewer 意見，先釐清再實作。"
 ```
@@ -121,6 +121,15 @@ cat skills/tao-of-coding/references/fixer.md \
 
 ## 7) 版本追溯
 
-- 本地 superpowers 來源追溯：`skills/superpowers/SOURCE.md`
+- 本地 superpowers 來源追溯：`skills/tao-of-coding/references/superpowers/SOURCE.md`
 - 技能對照表：`docs/celestial_skill_mapping.md`
 - 技能分析：`docs/superpowers_skills_analysis.md`
+
+## 8) 升級同步（單一 Skill 內化版）
+
+- 同步腳本：`skills/tao-of-coding/scripts/sync-superpowers.sh`
+- 乾跑檢查：
+  `skills/tao-of-coding/scripts/sync-superpowers.sh <commit-or-tag> --dry-run`
+- 正式同步：
+  `skills/tao-of-coding/scripts/sync-superpowers.sh <commit-or-tag>`
+- 同步完成後，會更新 `skills/tao-of-coding/references/superpowers/SOURCE.md` 並保留舊版備份目錄。

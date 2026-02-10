@@ -17,7 +17,7 @@
   - `skills/tao-of-coding/references/librarian.md`
   - `skills/tao-of-coding/references/explorer.md`
   - `skills/tao-of-coding/references/designer.md`
-- 本地化 Superpowers：`skills/superpowers/`
+- 本地化 Superpowers：`skills/tao-of-coding/references/superpowers/`
 
 ## 維護規則
 

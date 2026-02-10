@@ -73,7 +73,7 @@ gemini --model "gemini-3-flash-preview" \
 
 ## 已導入 Superpowers 技能 (Phase 1)
 
-目前已在 `skills/superpowers/` 本地導入以下核心技能：
+目前已在 `skills/tao-of-coding/references/superpowers/` 本地導入以下核心技能：
 
 - `brainstorming`
 - `writing-plans`
@@ -84,7 +84,7 @@ gemini --model "gemini-3-flash-preview" \
 - `requesting-code-review`
 - `receiving-code-review`
 
-建議使用方式：先依 `skills/tao-of-coding/SKILL.md` 做角色路由，再載入對應 `skills/superpowers/<skill>/SKILL.md` 執行。
+建議使用方式：先依 `skills/tao-of-coding/SKILL.md` 做角色路由，再載入對應 `skills/tao-of-coding/references/superpowers/<skill>/SKILL.md` 執行。
 
 ---
 
@@ -151,19 +151,24 @@ ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-coding ~/.codeium/wind
 │   ├── celestial_skill_mapping.md
 │   └── project-spirit-analysis.md
 └── skills/
-    ├── tao-of-coding/
-    │   ├── SKILL.md
-    │   └── references/
-    └── superpowers/
-        ├── SOURCE.md
-        ├── brainstorming/
-        ├── writing-plans/
-        ├── executing-plans/
-        ├── test-driven-development/
-        ├── systematic-debugging/
-        ├── verification-before-completion/
-        ├── requesting-code-review/
-        └── receiving-code-review/
+    └── tao-of-coding/
+        ├── SKILL.md
+        └── references/
+            ├── explorer.md
+            ├── oracle.md
+            ├── librarian.md
+            ├── fixer.md
+            ├── designer.md
+            └── superpowers/
+                ├── SOURCE.md
+                ├── brainstorming/
+                ├── writing-plans/
+                ├── executing-plans/
+                ├── test-driven-development/
+                ├── systematic-debugging/
+                ├── verification-before-completion/
+                ├── requesting-code-review/
+                └── receiving-code-review/
 ```
 
 ---

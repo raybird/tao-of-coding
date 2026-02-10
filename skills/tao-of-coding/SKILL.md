@@ -29,19 +29,19 @@ metadata:
 
 ## 技能路由表 (Skill Routing)
 
-以下為已本地化的 Superpowers 核心技能路由（目錄：`skills/superpowers/`）。
+以下為已本地化的 Superpowers 核心技能路由（目錄：`skills/tao-of-coding/references/superpowers/`）。
 執行時建議同時引用「角色天書 + 技能天書」，避免只套流程而失去角色分工語境。
 
 | 任務類型 | 主責神祇 | 角色天書路徑 | 協作神祇 | 優先技能 | 技能路徑 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 創意發想、需求澄清、方案比較 | 太上老君 (Oracle) | `skills/tao-of-coding/references/oracle.md` | 織女 (Designer) | `brainstorming` | `skills/superpowers/brainstorming/SKILL.md` |
-| 多步驟實作計畫撰寫 | 太上老君 (Oracle) | `skills/tao-of-coding/references/oracle.md` | 文曲星 (Librarian) | `writing-plans` | `skills/superpowers/writing-plans/SKILL.md` |
-| 依既有計畫批次執行 | 千里眼/順風耳 (Explorer) | `skills/tao-of-coding/references/explorer.md` | 魯班 (Fixer) | `executing-plans` | `skills/superpowers/executing-plans/SKILL.md` |
-| 新功能/修 Bug 的測試先行實作 | 魯班 (Fixer) | `skills/tao-of-coding/references/fixer.md` | 太上老君 (Oracle) | `test-driven-development` | `skills/superpowers/test-driven-development/SKILL.md` |
-| 錯誤追因、根因定位 | 魯班 (Fixer) | `skills/tao-of-coding/references/fixer.md` | 千里眼/順風耳 (Explorer) | `systematic-debugging` | `skills/superpowers/systematic-debugging/SKILL.md` |
-| 宣告完成前驗證 | 魯班 (Fixer) | `skills/tao-of-coding/references/fixer.md` | 太上老君 (Oracle) | `verification-before-completion` | `skills/superpowers/verification-before-completion/SKILL.md` |
-| 發 PR/任務後請求審查 | 文曲星 (Librarian) | `skills/tao-of-coding/references/librarian.md` | 太上老君 (Oracle) | `requesting-code-review` | `skills/superpowers/requesting-code-review/SKILL.md` |
-| 接收審查意見、分級處理 | 魯班 (Fixer) | `skills/tao-of-coding/references/fixer.md` | 文曲星 (Librarian) | `receiving-code-review` | `skills/superpowers/receiving-code-review/SKILL.md` |
+| 創意發想、需求澄清、方案比較 | 太上老君 (Oracle) | `skills/tao-of-coding/references/oracle.md` | 織女 (Designer) | `brainstorming` | `skills/tao-of-coding/references/superpowers/brainstorming/SKILL.md` |
+| 多步驟實作計畫撰寫 | 太上老君 (Oracle) | `skills/tao-of-coding/references/oracle.md` | 文曲星 (Librarian) | `writing-plans` | `skills/tao-of-coding/references/superpowers/writing-plans/SKILL.md` |
+| 依既有計畫批次執行 | 千里眼/順風耳 (Explorer) | `skills/tao-of-coding/references/explorer.md` | 魯班 (Fixer) | `executing-plans` | `skills/tao-of-coding/references/superpowers/executing-plans/SKILL.md` |
+| 新功能/修 Bug 的測試先行實作 | 魯班 (Fixer) | `skills/tao-of-coding/references/fixer.md` | 太上老君 (Oracle) | `test-driven-development` | `skills/tao-of-coding/references/superpowers/test-driven-development/SKILL.md` |
+| 錯誤追因、根因定位 | 魯班 (Fixer) | `skills/tao-of-coding/references/fixer.md` | 千里眼/順風耳 (Explorer) | `systematic-debugging` | `skills/tao-of-coding/references/superpowers/systematic-debugging/SKILL.md` |
+| 宣告完成前驗證 | 魯班 (Fixer) | `skills/tao-of-coding/references/fixer.md` | 太上老君 (Oracle) | `verification-before-completion` | `skills/tao-of-coding/references/superpowers/verification-before-completion/SKILL.md` |
+| 發 PR/任務後請求審查 | 文曲星 (Librarian) | `skills/tao-of-coding/references/librarian.md` | 太上老君 (Oracle) | `requesting-code-review` | `skills/tao-of-coding/references/superpowers/requesting-code-review/SKILL.md` |
+| 接收審查意見、分級處理 | 魯班 (Fixer) | `skills/tao-of-coding/references/fixer.md` | 文曲星 (Librarian) | `receiving-code-review` | `skills/tao-of-coding/references/superpowers/receiving-code-review/SKILL.md` |
 
 ### 路由準則
 
