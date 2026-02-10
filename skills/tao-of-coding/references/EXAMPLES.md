@@ -30,6 +30,34 @@
 - 若 CLI 支援 `--timeout` 等參數，可對長時間任務設定上限，避免無限期等待。
 - 當 Sub-agent 回傳非零 exit code 或 stderr 有內容時，主 Agent 應將錯誤資訊轉達用戶，或重試、改派其他子任務，而非假設一定有 stdout 結果。
 
+## 查證型任務範例（外部事實）
+
+當任務涉及價格、新聞、法規、版本、公告等可變動資訊時，輸出至少包含：
+
+1. 使用的工具與命令（或查詢方式）
+2. 來源連結
+3. 查詢日期（YYYY-MM-DD）
+4. 根據來源得出的結論（可區分「事實」與「推論」）
+
+範例輸出格式：
+
+```text
+[角色路由]
+Explorer + systematic-debugging（僅用於查證流程）
+
+[查詢]
+- Tool: web search
+- Query: "SEC crypto task force latest updates"
+- Date: 2026-02-10
+
+[來源]
+- https://www.sec.gov/...
+
+[結論]
+- 事實：SEC 已在 2025-01-21 公布 task force。
+- 推論：短期內仍屬框架形成期，市場不確定性偏高。
+```
+
 ---
 
 ## 選用哪一支 Sub-agent 的簡表
