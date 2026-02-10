@@ -8,6 +8,16 @@
 - Superpowers (`skills/tao-of-coding/references/superpowers/*`) 是「執行技能層」：進到具體流程（TDD、debug、review...）。
 - 實務上採兩段式：先用 Tao 定位任務，再把對應的 Superpowers skill 當成執行規格。
 
+### 強制查證規範（與 SKILL.md 對齊）
+
+以下規範為執行前提；若未滿足，不應宣告完成：
+
+1. 涉及「最新/今日/近期/可能變動」資訊時，必須先調用工具查證（CLI/API/web search）再回覆。
+2. 使用外部事實（價格、新聞、法規、版本、公告）時，必須附來源與查詢日期（YYYY-MM-DD）。
+3. 優先使用本地可用工具；若呼叫 `gemini` CLI，需明確說明用途（摘要、分析、對比）。
+4. 若受限於網路或權限而無法查證，需說明限制與已嘗試步驟，不得假設最新資訊。
+5. 多步驟任務先回報「路由角色 + 將使用技能/工具」再執行。
+
 ## 2) 已導入可用技能 (Phase 1)
 
 - `skills/tao-of-coding/references/superpowers/brainstorming/SKILL.md`

@@ -82,53 +82,63 @@ Superpowers 的來源版本與導入時間，統一以 `skills/tao-of-coding/ref
 2. 若任務超過時間盒，需在 `docs/implementation-plan.md` 記錄延期原因與新的截止時間。
 3. 最終整合由玉皇大帝（主代理）負責確認五項輸出都可被下游角色直接使用，不可有斷鏈。
 
-## 請神儀式 (The Summoning Rituals)
+## 工具調用與查證規範 (Tool Invocation & Verification Rules)
 
-所有的儀式（CLI Call）皆需遵循**「無狀態 (Stateless)」天條**。
-**強烈建議**將角色天書作為 System Prompt 的一部分傳入，以確保神祇各司其職。
+以下規範為**強制**要求（MUST），未滿足不得宣告完成：
 
-### 1. 召喚千里眼 (Explorer)
+1. 只要問題涉及「最新/今日/近期/可能變動」資訊，必須先調用工具查證（CLI、API、web search 皆可），再回覆結論。
+2. 只要使用外部事實（價格、新聞、法規、版本、公告），回覆中必須附來源，並標註查詢日期（YYYY-MM-DD）。
+3. 優先使用本地可用工具完成查證；若需呼叫 `gemini` CLI，需明確說明目的（例如：摘要長文、角色化分析、產生對比方案）。
+4. 若因環境限制無法查證（例如無網路/權限不足），必須明確告知限制、已嘗試步驟、以及下一步建議，不得假設最新資訊。
+5. 任務涉及多步驟執行時，需先回報「路由角色 + 將使用的技能/工具」，再執行。
+
+## 標準調用流程 (Standard Invocation Flow)
+
+所有 CLI 調用皆需遵循**無狀態（Stateless）**原則。
+建議將對應角色參考文件一併傳入，以確保輸出維持角色分工一致性。
+
+### 1. Explorer 任務（結構掃描）
 ```bash
 # 讀取天書與指令，掃描結構
 cat skills/tao-of-coding/references/explorer.md | gemini --model "gemini-3-flash-preview" \
   -p "千里眼/順風耳聽令，信徒欲知專案詳情，請掃描當前目錄，並列出核心架構與依賴關係摘要。"
 ```
 
-### 2. 請太上老君開爐 (Oracle)
+### 2. Oracle 任務（策略與重構）
 ```bash
 # 將天書、程式碼與指令一同獻祭
 cat skills/tao-of-coding/references/oracle.md complex_logic.py | gemini --model "gemini-3-pro-preview" \
   -p "太上老君在上，弟子求賜重構之法，理清此模組之亂象。"
 ```
 
-### 3. 奉文曲星之命 (Librarian)
+### 3. Librarian 任務（文件整理）
 ```bash
 cat skills/tao-of-coding/references/librarian.md raw_code.js | gemini --model "gemini-3-flash-preview" \
   -p "奉文曲星之命，為此程式碼撰寫標準 JSDoc 文件。"
 ```
 
-### 4. 魯班巧手 (Fixer)
+### 4. Fixer 任務（修復與測試）
 ```bash
 cat skills/tao-of-coding/references/fixer.md | gemini --model "gemini-3-flash-preview" \
   -p "魯班祖師，弟子求您為這個函數編寫 Jest 單元測試，涵蓋邊界案例。"
 ```
 
-### 5. 織女雲錦 (Designer)
+### 5. Designer 任務（介面與體驗）
 ```bash
 cat skills/tao-of-coding/references/designer.md | gemini --model "gemini-3-pro-preview" \
   -p "織女娘娘，信徒祈願一個現代化的登入表單，使用 Tailwind CSS，請賜予最優雅的雲錦天衣。"
 ```
 
-## 天條律令 (The Celestial Laws)
+## 執行原則 (Execution Principles)
 
-1. **無狀態律令 (Law of Statelessness)**：
-   神仙下凡不帶凡間記憶。每次召喚，務必將所有必要的供品（Context）一次呈上。
+1. **無狀態（Stateless）**：
+   每次調用都需提供完整上下文，不假設歷史記憶。
 
-2. **職責分明律令 (Law of Separation)**：
-   **務必引用正確的角色天書**。勿讓魯班去寫詩，勿讓千里眼去煉丹。
+2. **職責分離（Separation of Concerns）**：
+   依任務性質載入正確角色參考文件，避免角色混用造成輸出偏移。
 
-3. **節用民力律令 (Law of Thrift)**：
-   凡間資源（Token）有限。若能請動小神（Flash 模型）解決，切勿驚動大神（Pro 模型）。
+3. **成本控制（Cost Efficiency）**：
+   優先使用較小模型與必要上下文，僅在需要時升級較大模型。
 
-4. **輸入隔離律令 (Law of Input Isolation)**：
-   傳遞長篇經文時，務必使用 **Standard Input (Stdin)** 管道。
+4. **輸入隔離（Input Isolation）**：
+   傳遞長內容時，優先使用 `stdin` 管道，避免提示詞污染與遺漏。

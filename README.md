@@ -41,13 +41,13 @@
 
 本專案深度實踐「輕量化 (Slim)」原則，旨在降低 Token 消耗並提升反應速度：
 
-1.  **分級召喚**：能用小神（Flash 模型）解決的任務，絕不驚動大神（Pro 模型），大幅節約預算。
-2.  **無狀態天條 (Stateless)**：所有代理皆運行於獨立、無記憶的環境，確保上下文清潔。
+1.  **分級調用**：能用小模型（Flash）解決的任務，避免直接使用大模型（Pro），以節省成本。
+2.  **無狀態原則 (Stateless)**：所有代理皆運行於獨立、無記憶環境，確保上下文清潔。
 3.  **精煉經文 (Prompt Fine-tuning)**：透過高度優化的指令集，讓 AI 以最少的詞彙達成最精準的產出。
 
 ---
 
-## 請神儀式 (Usage)
+## 標準使用方式 (Usage)
 
 本系統透過 `gemini` CLI 進行祈願 (Praying)。以下為常見的祈願範例：
 
@@ -64,6 +64,15 @@ cat architecture.md | gemini --model "gemini-3-pro-preview" \
 gemini --model "gemini-3-flash-preview" \
   -p "奉文曲星之命，為本專案撰寫一份清晰易懂的 README。"
 ```
+
+### 工具調用與查證規範（摘要）
+
+以下規範與 `skills/tao-of-coding/SKILL.md` 一致，未滿足不應宣告任務完成：
+
+1. 只要任務涉及「最新/近期/可能變動」資訊，必須先用工具查證再回覆。
+2. 使用外部事實（價格、新聞、法規、版本、公告）時，需附來源與查詢日期（YYYY-MM-DD）。
+3. 若無法查證（網路或權限限制），需明確說明限制與已嘗試步驟，不得假設最新資訊。
+4. 多步驟任務應先說明「角色路由 + 將使用的技能/工具」再執行。
 
 更多詳細規範與指令範例，請參閱：
 -   [Tao of Coding Protocol](skills/tao-of-coding/SKILL.md)
@@ -84,7 +93,7 @@ gemini --model "gemini-3-flash-preview" \
 - `requesting-code-review`
 - `receiving-code-review`
 
-建議使用方式：先依 `skills/tao-of-coding/SKILL.md` 做角色路由，再載入對應 `skills/tao-of-coding/references/superpowers/<skill>/SKILL.md` 執行。
+推薦流程：先依 `skills/tao-of-coding/SKILL.md` 做角色路由，再載入對應 `skills/tao-of-coding/references/superpowers/<skill>/SKILL.md` 執行。
 
 ### 升級維護（Superpowers）
 
@@ -103,7 +112,7 @@ gemini --model "gemini-3-flash-preview" \
 
 | 工具 | 用途 | 安裝確認 |
 | :--- | :--- | :--- |
-| **Gemini CLI** | 核心召喚媒介，用於呼叫各路神祇。 | `gemini --version` |
+| **Gemini CLI** | 核心調用工具，用於執行角色化任務。 | `gemini --version` |
 | **OpenCode CLI** (選用) | 特定開源生態操作工具。 | `opencode --version` |
 
 ---
