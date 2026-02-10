@@ -86,6 +86,13 @@ gemini --model "gemini-3-flash-preview" \
 
 建議使用方式：先依 `skills/tao-of-coding/SKILL.md` 做角色路由，再載入對應 `skills/tao-of-coding/references/superpowers/<skill>/SKILL.md` 執行。
 
+### 升級維護（Superpowers）
+
+- 同步腳本：`skills/tao-of-coding/scripts/sync-superpowers.sh`
+- 先乾跑：`skills/tao-of-coding/scripts/sync-superpowers.sh <commit-or-tag> --dry-run`
+- 再正式同步：`skills/tao-of-coding/scripts/sync-superpowers.sh <commit-or-tag>`
+- 同步來源與版本追蹤：`skills/tao-of-coding/references/superpowers/SOURCE.md`
+
 ---
 
 ## 環境需求

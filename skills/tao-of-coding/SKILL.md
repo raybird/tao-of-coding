@@ -31,6 +31,7 @@ metadata:
 
 以下為已本地化的 Superpowers 核心技能路由（目錄：`skills/tao-of-coding/references/superpowers/`）。
 執行時建議同時引用「角色天書 + 技能天書」，避免只套流程而失去角色分工語境。
+Superpowers 的來源版本與導入時間，統一以 `skills/tao-of-coding/references/superpowers/SOURCE.md` 為準。
 
 | 任務類型 | 主責神祇 | 角色天書路徑 | 協作神祇 | 優先技能 | 技能路徑 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
