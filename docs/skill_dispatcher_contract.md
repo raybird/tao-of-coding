@@ -24,7 +24,7 @@ identity:
   root_loaded: true
 policy:
   forbid_root_reload: true
-  max_depth: 3
+  max_depth: 1
   allow_reentry: false
 trace:
   request_id: req-2026-02-15-001
@@ -110,10 +110,10 @@ dispatch(request):
 - 入口腳本：`skills/tao-of-coding/scripts/skill-dispatch.sh`
 - 建議所有自動 skill 觸發都經過此入口，避免子流程直接呼叫模型 CLI。
 - 對話自動路由：`skills/tao-of-coding/scripts/orchestrate-skill.sh`
-- 路由規則檔：`skills/tao-of-coding/references/skill-routing.yaml`
+- 路由規則檔：`skills/tao-of-coding/references/skill-routing.conf`
 
 `orchestrate-skill.sh` 會先依對話內容選擇 role+skill，再轉呼叫 `skill-dispatch.sh`。
-調整自動觸發行為時，優先修改 `skill-routing.yaml`，可避免直接改腳本邏輯。
+調整自動觸發行為時，優先修改 `skill-routing.conf`，可避免直接改腳本邏輯。
 
 範例：
 

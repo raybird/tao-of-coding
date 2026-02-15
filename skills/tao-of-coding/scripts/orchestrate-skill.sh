@@ -13,7 +13,7 @@ Prompt input (pick one):
 
 Routing / execution options:
   --depth <n>                   Current depth (default: 0)
-  --max-depth <n>               Max allowed depth (default: 3)
+  --max-depth <n>               Max allowed depth (default: 1)
   --execution-mode <mode>       root|delegated (default derived from --depth)
   --parent-skill <name>         Parent skill for delegated flows
   --edge-type <type>            requires_now|requires_later|reference_only (default: requires_now)
@@ -22,7 +22,7 @@ Routing / execution options:
   --visited-skills <csv>        Existing visited skills (comma-separated)
   --allow-reentry <bool>        true|false (default: false)
   --forbid-root-reload <bool>   true|false (default: true)
-  --route-config <path>         Routing rule yaml path
+  --route-config <path>         Routing rule conf path
 
 Runner / output options:
   --runner-cmd <cmd>            Pass composed prompt to command stdin
@@ -43,6 +43,133 @@ fail() {
   exit 1
 }
 
+trim() {
+  local s="$1"
+  s="${s#"${s%%[![:space:]]*}"}"
+  s="${s%"${s##*[![:space:]]}"}"
+  printf '%s' "$s"
+}
+
+flush_route() {
+  if [[ -z "$CUR_ROUTE_ID" ]]; then
+    return 0
+  fi
+  if [[ -z "$CUR_ROUTE_ROLE" || -z "$CUR_ROUTE_SKILL" ]]; then
+    fail "E_BAD_ROUTE_CONFIG" "route '$CUR_ROUTE_ID' missing role/skill"
+  fi
+  ROUTE_IDS+=("$CUR_ROUTE_ID")
+  ROUTE_REASONS+=("${CUR_ROUTE_REASON:-$CUR_ROUTE_ID}")
+  ROUTE_ROLES+=("$CUR_ROUTE_ROLE")
+  ROUTE_SKILLS+=("$CUR_ROUTE_SKILL")
+  ROUTE_PATTERNS+=("$CUR_ROUTE_PATTERNS")
+}
+
+load_route_config() {
+  local cfg_path="$1"
+  local line section key value
+
+  if [[ "$cfg_path" =~ \.ya?ml$ ]]; then
+    fail "E_UNSUPPORTED_ROUTE_FORMAT" "yaml route config is no longer supported; use .conf"
+  fi
+
+  [[ -f "$cfg_path" ]] || fail "E_MISSING_FILE" "route config not found: $cfg_path"
+
+  DEFAULT_ROLE=""
+  DEFAULT_SKILL=""
+  DEFAULT_REASON="fallback"
+  ROUTE_IDS=()
+  ROUTE_REASONS=()
+  ROUTE_ROLES=()
+  ROUTE_SKILLS=()
+  ROUTE_PATTERNS=()
+  CUR_ROUTE_ID=""
+  CUR_ROUTE_REASON=""
+  CUR_ROUTE_ROLE=""
+  CUR_ROUTE_SKILL=""
+  CUR_ROUTE_PATTERNS=""
+  section=""
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line%%#*}"
+    line="$(trim "$line")"
+    [[ -z "$line" ]] && continue
+
+    if [[ "$line" =~ ^\[(.+)\]$ ]]; then
+      flush_route
+      section="${BASH_REMATCH[1]}"
+      CUR_ROUTE_ID=""
+      CUR_ROUTE_REASON=""
+      CUR_ROUTE_ROLE=""
+      CUR_ROUTE_SKILL=""
+      CUR_ROUTE_PATTERNS=""
+      if [[ "$section" =~ ^route\.(.+)$ ]]; then
+        CUR_ROUTE_ID="${BASH_REMATCH[1]}"
+      fi
+      continue
+    fi
+
+    if [[ "$line" != *=* ]]; then
+      fail "E_BAD_ROUTE_CONFIG" "invalid line in route config: $line"
+    fi
+
+    key="$(trim "${line%%=*}")"
+    value="$(trim "${line#*=}")"
+
+    case "$section" in
+      default)
+        case "$key" in
+          role) DEFAULT_ROLE="$value" ;;
+          skill) DEFAULT_SKILL="$value" ;;
+          reason) DEFAULT_REASON="$value" ;;
+        esac
+        ;;
+      route.*)
+        case "$key" in
+          role) CUR_ROUTE_ROLE="$value" ;;
+          skill) CUR_ROUTE_SKILL="$value" ;;
+          reason) CUR_ROUTE_REASON="$value" ;;
+          pattern)
+            if [[ -z "$CUR_ROUTE_PATTERNS" ]]; then
+              CUR_ROUTE_PATTERNS="$value"
+            else
+              CUR_ROUTE_PATTERNS+=$'\n'
+              CUR_ROUTE_PATTERNS+="$value"
+            fi
+            ;;
+        esac
+        ;;
+      *)
+        fail "E_BAD_ROUTE_CONFIG" "entry outside [default] or [route.*]: $line"
+        ;;
+    esac
+  done < "$cfg_path"
+
+  flush_route
+
+  if [[ -z "$DEFAULT_ROLE" || -z "$DEFAULT_SKILL" ]]; then
+    fail "E_BAD_ROUTE_CONFIG" "missing default role/skill"
+  fi
+}
+
+match_route() {
+  local prompt="$1"
+  local i patterns pattern
+  shopt -s nocasematch
+  for i in "${!ROUTE_IDS[@]}"; do
+    patterns="${ROUTE_PATTERNS[$i]}"
+    while IFS= read -r pattern || [[ -n "$pattern" ]]; do
+      [[ -z "$pattern" ]] && continue
+      if [[ "$prompt" =~ $pattern ]]; then
+        printf '%s\t%s\t%s' "${ROUTE_ROLES[$i]}" "${ROUTE_SKILLS[$i]}" "${ROUTE_REASONS[$i]}"
+        shopt -u nocasematch
+        return 0
+      fi
+    done <<< "$patterns"
+  done
+  shopt -u nocasematch
+  printf '%s\t%s\t%s' "$DEFAULT_ROLE" "$DEFAULT_SKILL" "${DEFAULT_REASON:-fallback}"
+}
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPO_ROOT="$(cd "$SKILL_DIR/../.." && pwd)"
@@ -53,7 +180,7 @@ DISPATCH_SCRIPT="$SCRIPT_DIR/skill-dispatch.sh"
 PROMPT_TEXT=""
 PROMPT_FILE=""
 DEPTH=0
-MAX_DEPTH=3
+MAX_DEPTH=1
 EXECUTION_MODE=""
 PARENT_SKILL=""
 EDGE_TYPE="requires_now"
@@ -62,7 +189,7 @@ SKILL_STACK=""
 VISITED_SKILLS=""
 ALLOW_REENTRY="false"
 FORBID_ROOT_RELOAD="true"
-ROUTE_CONFIG_PATH="skills/tao-of-coding/references/skill-routing.yaml"
+ROUTE_CONFIG_PATH="skills/tao-of-coding/references/skill-routing.conf"
 RUNNER_CMD=""
 OUTPUT_FILE=""
 DRY_RUN=0
@@ -153,7 +280,7 @@ fi
 [[ -n "$PROMPT_TEXT" ]] || fail "E_REQUIRED" "prompt required: use --prompt, --prompt-file, or stdin"
 
 ROUTE_CONFIG_ABS="$REPO_ROOT/$ROUTE_CONFIG_PATH"
-[[ -f "$ROUTE_CONFIG_ABS" ]] || fail "E_MISSING_FILE" "route config not found: $ROUTE_CONFIG_PATH"
+load_route_config "$ROUTE_CONFIG_ABS"
 
 if ! [[ "$DEPTH" =~ ^[0-9]+$ ]]; then
   fail "E_BAD_DEPTH" "--depth must be a non-negative integer"
@@ -170,46 +297,7 @@ if [[ -z "$EXECUTION_MODE" ]]; then
   fi
 fi
 
-route_line="$(PROMPT_TEXT="$PROMPT_TEXT" ROUTE_CONFIG_ABS="$ROUTE_CONFIG_ABS" python3 - <<'PY'
-import os
-import re
-import sys
-import yaml
-
-cfg_path = os.environ["ROUTE_CONFIG_ABS"]
-prompt = os.environ["PROMPT_TEXT"]
-
-with open(cfg_path, "r", encoding="utf-8") as fh:
-    cfg = yaml.safe_load(fh) or {}
-
-default = cfg.get("default") or {}
-routes = cfg.get("routes") or []
-
-for route in routes:
-    role = route.get("role")
-    skill = route.get("skill")
-    reason = route.get("reason") or route.get("id") or "matched"
-    patterns = route.get("patterns") or []
-    if not role or not skill:
-        continue
-    for pattern in patterns:
-        if re.search(pattern, prompt, re.IGNORECASE):
-            print(f"{role}\t{skill}\t{reason}")
-            sys.exit(0)
-
-if default.get("role") and default.get("skill"):
-    reason = default.get("reason") or "fallback"
-    print(f"{default['role']}\t{default['skill']}\t{reason}")
-    sys.exit(0)
-
-print("E_BAD_ROUTE_CONFIG\tmissing default role/skill")
-sys.exit(2)
-PY
-)"
-
-if [[ "$route_line" == E_BAD_ROUTE_CONFIG* ]]; then
-  fail "E_BAD_ROUTE_CONFIG" "invalid routing config: missing default role/skill"
-fi
+route_line="$(match_route "$PROMPT_TEXT")"
 
 IFS=$'\t' read -r route_role route_skill route_reason <<< "$route_line"
 

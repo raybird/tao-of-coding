@@ -102,6 +102,7 @@ skills/tao-of-coding/scripts/skill-dispatch.sh \
 -   [Tao of Coding Protocol](skills/tao-of-coding/SKILL.md)
 -   [Tao x Superpowers 操作指引](docs/superpowers_playbook.md)
 -   [Skill Dispatcher Contract](docs/skill_dispatcher_contract.md)
+-   [Skill Routing 格式](docs/skill_routing_format.md)
 -   [SemVer 版本決策樹](docs/semver_decision_tree.md)
 -   [Release Note 模板](docs/release_note_template.md)
 -   [角色職能與技能對照表](docs/celestial_skill_mapping.md)
@@ -141,7 +142,6 @@ skills/tao-of-coding/scripts/skill-dispatch.sh \
 | :--- | :--- | :--- |
 | **Gemini CLI** | 核心調用工具，用於執行角色化任務。 | `gemini --version` |
 | **Bash** | 執行 `scripts/*.sh`（dispatch / orchestrate / sync）。 | `bash --version` |
-| **Python 3** | 解析路由規則檔（`skill-routing.yaml`）。 | `python3 --version` |
 | **Git** | 同步上游 superpowers 技能。 | `git --version` |
 | **OpenCode CLI** (選用) | 特定開源生態操作工具。 | `opencode --version` |
 
@@ -196,6 +196,7 @@ ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-coding ~/.codeium/wind
 │   ├── release_note_template.md
 │   ├── superpowers_playbook.md
 │   ├── skill_dispatcher_contract.md
+│   ├── skill_routing_format.md
 │   ├── superpowers_skills_analysis.md
 │   ├── celestial_skill_mapping.md
 │   └── project-spirit-analysis.md
@@ -212,7 +213,7 @@ ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-coding ~/.codeium/wind
             ├── librarian.md
             ├── fixer.md
             ├── designer.md
-            ├── skill-routing.yaml
+            ├── skill-routing.conf
             └── superpowers/
                 ├── SOURCE.md
                 ├── brainstorming/

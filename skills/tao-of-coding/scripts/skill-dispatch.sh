@@ -18,7 +18,7 @@ Prompt input (pick one):
 Execution options:
   --execution-mode <mode>       root|delegated (default derived from --depth)
   --depth <n>                   Current depth (default: 0)
-  --max-depth <n>               Max allowed depth (default: 3)
+  --max-depth <n>               Max allowed depth (default: 1)
   --parent-skill <name>         Parent skill name
   --edge-type <type>            requires_now|requires_later|reference_only (default: requires_now)
   --allow-reentry <bool>        true|false (default: false)
@@ -116,7 +116,7 @@ PROMPT_TEXT=""
 PROMPT_FILE=""
 EXECUTION_MODE=""
 DEPTH=0
-MAX_DEPTH=3
+MAX_DEPTH=1
 PARENT_SKILL=""
 EDGE_TYPE="requires_now"
 ALLOW_REENTRY="false"

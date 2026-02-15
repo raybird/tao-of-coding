@@ -143,7 +143,7 @@ FORBID_ROOT_RELOAD: true
 並強制防遞迴：
 
 1. 維護 `visited_skills`，同鏈路不重入。
-2. 設定 `max_depth`（建議 3）。
+2. 設定 `max_depth`（預設 1，必要時再覆寫）。
 3. 只對 `requires_now` 邊自動觸發；其餘視為參考。
 
 詳見 `docs/skill_dispatcher_contract.md`。
@@ -174,8 +174,8 @@ skills/tao-of-coding/scripts/orchestrate-skill.sh \
 
 此腳本會先做 role+skill 自動路由，再把結果交給 `skill-dispatch.sh` 套用同一套防遞迴規則。
 
-路由規則預設讀取：`skills/tao-of-coding/references/skill-routing.yaml`。
-如需客製規則，可加 `--route-config <path>` 指向另一份 yaml。
+路由規則預設讀取：`skills/tao-of-coding/references/skill-routing.conf`。
+如需客製規則，可加 `--route-config <path>` 指向另一份 `.conf`。
 
 ## 6) 團隊落地規範（建議）
 
