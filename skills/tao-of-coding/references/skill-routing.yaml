@@ -1,0 +1,101 @@
+version: 1
+
+default:
+  role: oracle
+  skill: brainstorming
+  reason: fallback
+
+routes:
+  - id: ideation
+    reason: ideation
+    role: oracle
+    skill: brainstorming
+    patterns:
+      - 發想
+      - 澄清
+      - 方案比較
+      - brainstorm
+      - trade[-\s]?off
+      - 需求
+
+  - id: planning
+    reason: planning
+    role: oracle
+    skill: writing-plans
+    patterns:
+      - 實作計畫
+      - implementation\s+plan
+      - 寫計畫
+      - plan\s+first
+      - 先規劃
+
+  - id: plan-execution
+    reason: plan-execution
+    role: explorer
+    skill: executing-plans
+    patterns:
+      - 執行計畫
+      - 按計畫執行
+      - 按計畫批次執行
+      - 批次執行
+      - execute\s+plan
+      - batch\s+execute
+
+  - id: tdd
+    reason: tdd
+    role: fixer
+    skill: test-driven-development
+    patterns:
+      - tdd
+      - red-green
+      - 測試先行
+      - 先寫測試
+      - failing\s+test
+
+  - id: debugging
+    reason: debugging
+    role: fixer
+    skill: systematic-debugging
+    patterns:
+      - 根因
+      - 除錯
+      - debug
+      - unexpected
+      - 失敗
+      - 錯誤
+      - flaky
+      - 故障
+
+  - id: verification
+    reason: verification
+    role: fixer
+    skill: verification-before-completion
+    patterns:
+      - 完成前驗證
+      - 宣告完成
+      - verification
+      - evidence\s+before\s+claims
+      - verify\s+before
+
+  - id: requesting-review
+    reason: request-review
+    role: librarian
+    skill: requesting-code-review
+    patterns:
+      - 請求審查
+      - 送審
+      - request\s+review
+      - pre-review
+      - pr\s+summary
+      - review\s+request
+
+  - id: receiving-review
+    reason: receive-review
+    role: fixer
+    skill: receiving-code-review
+    patterns:
+      - 回覆審查
+      - 處理審查
+      - review\s+feedback
+      - review\s+comment
+      - address\s+review
