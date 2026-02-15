@@ -102,6 +102,8 @@ skills/tao-of-coding/scripts/skill-dispatch.sh \
 -   [Tao of Coding Protocol](skills/tao-of-coding/SKILL.md)
 -   [Tao x Superpowers 操作指引](docs/superpowers_playbook.md)
 -   [Skill Dispatcher Contract](docs/skill_dispatcher_contract.md)
+-   [SemVer 版本決策樹](docs/semver_decision_tree.md)
+-   [Release Note 模板](docs/release_note_template.md)
 -   [角色職能與技能對照表](docs/celestial_skill_mapping.md)
 -   [專案精神深度分析](docs/project-spirit-analysis.md)
 
@@ -190,6 +192,8 @@ ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-coding ~/.codeium/wind
 .
 ├── README.md
 ├── docs/
+│   ├── semver_decision_tree.md
+│   ├── release_note_template.md
 │   ├── superpowers_playbook.md
 │   ├── skill_dispatcher_contract.md
 │   ├── superpowers_skills_analysis.md
