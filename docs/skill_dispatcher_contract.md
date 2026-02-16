@@ -3,12 +3,12 @@
 本文件定義「自動 Skill 觸發」的最小執行契約，目標是：
 
 1. 子 Skill 明確知道自己的身份（角色與當前 Skill）
-2. 不重載 `skills/tao-of-coding/SKILL.md`
+2. 不重載 `skills/tao-of-gemini/SKILL.md`
 3. 防止 Skill 觸發遞迴
 
 ## 1) 執行模式
 
-- **Root 模式**：只在最外層請求啟動，載入一次 `skills/tao-of-coding/SKILL.md`
+- **Root 模式**：只在最外層請求啟動，載入一次 `skills/tao-of-gemini/SKILL.md`
 - **Delegated 模式**：由 Skill 觸發子 Skill 時使用；只載入「角色指南 + 目標 Skill」
 
 ## 2) Runtime Header（每次調用必帶）
@@ -70,7 +70,7 @@ dispatch(request):
   for edge in next_edges:
     if edge.type != requires_now:
       continue
-    if request.policy.forbid_root_reload and edge.target == "tao-of-coding":
+    if request.policy.forbid_root_reload and edge.target == "tao-of-gemini":
       continue
     if !request.policy.allow_reentry and edge.target in request.trace.visited_skills:
       continue
@@ -107,10 +107,10 @@ dispatch(request):
 
 ## 8) 參考實作
 
-- 入口腳本：`skills/tao-of-coding/scripts/skill-dispatch.sh`
+- 入口腳本：`skills/tao-of-gemini/scripts/skill-dispatch.sh`
 - 建議所有自動 skill 觸發都經過此入口，避免子流程直接呼叫模型 CLI。
-- 對話自動路由：`skills/tao-of-coding/scripts/orchestrate-skill.sh`
-- 路由規則檔：`skills/tao-of-coding/references/skill-routing.conf`
+- 對話自動路由：`skills/tao-of-gemini/scripts/orchestrate-skill.sh`
+- 路由規則檔：`skills/tao-of-gemini/references/skill-routing.conf`
 
 `orchestrate-skill.sh` 會先依對話內容選擇 role+skill，再轉呼叫 `skill-dispatch.sh`。
 調整自動觸發行為時，優先修改 `skill-routing.conf`，可避免直接改腳本邏輯。
@@ -118,7 +118,7 @@ dispatch(request):
 範例：
 
 ```bash
-skills/tao-of-coding/scripts/skill-dispatch.sh \
+skills/tao-of-gemini/scripts/skill-dispatch.sh \
   --role fixer \
   --skill systematic-debugging \
   --execution-mode delegated \

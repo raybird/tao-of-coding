@@ -67,17 +67,22 @@ gemini --model "gemini-3-flash-preview" \
 
 ### 自動 Orchestration（建議）
 
-若希望由對話內容自動觸發對應 skill，建議使用以下入口：
+本專案目前提供兩套等價機制：
+
+- `skills/tao-of-gemini/`：以 Gemini CLI 為執行入口
+- `skills/tao-of-opencode/`：以 OpenCode CLI 為執行入口
+
+若希望由對話內容自動觸發對應 skill，可用以下入口：
 
 ```bash
 # 對話自動路由 -> 角色 + skill -> 套用防遞迴執行層
-skills/tao-of-coding/scripts/orchestrate-skill.sh \
+skills/tao-of-gemini/scripts/orchestrate-skill.sh \
   --prompt "這個測試一直失敗，先找根因不要修" \
   --depth 0 \
   --runner-cmd 'gemini --model "gemini-3-flash-preview" -p "$(cat)"'
 
 # 直接指定角色與技能（進階）
-skills/tao-of-coding/scripts/skill-dispatch.sh \
+skills/tao-of-gemini/scripts/skill-dispatch.sh \
   --role fixer \
   --skill systematic-debugging \
   --execution-mode delegated \
@@ -87,11 +92,17 @@ skills/tao-of-coding/scripts/skill-dispatch.sh \
   --visited-skills writing-plans,executing-plans \
   --prompt "請先做根因分析，暫不提修補方案" \
   --runner-cmd 'gemini --model "gemini-3-flash-preview" -p "$(cat)"'
+
+# OpenCode 版本（同機制）
+skills/tao-of-opencode/scripts/orchestrate-skill.sh \
+  --prompt "這個測試一直失敗，先找根因不要修" \
+  --depth 0 \
+  --runner-cmd 'opencode run --model "provider/model" "$(cat)"'
 ```
 
 ### 工具調用與查證規範（摘要）
 
-以下規範與 `skills/tao-of-coding/SKILL.md` 一致，未滿足不應宣告任務完成：
+以下規範與對應 profile 的 `SKILL.md` 一致，未滿足不應宣告任務完成：
 
 1. 只要任務涉及「最新/近期/可能變動」資訊，必須先用工具查證再回覆。
 2. 使用外部事實（價格、新聞、法規、版本、公告）時，需附來源與查詢日期（YYYY-MM-DD）。
@@ -99,7 +110,8 @@ skills/tao-of-coding/scripts/skill-dispatch.sh \
 4. 多步驟任務應先說明「角色路由 + 將使用的技能/工具」再執行。
 
 更多詳細規範與指令範例，請參閱：
--   [Tao of Coding Protocol](skills/tao-of-coding/SKILL.md)
+-   [Tao of Coding Protocol](skills/tao-of-gemini/SKILL.md)
+-   [Tao of OpenCode Protocol](skills/tao-of-opencode/SKILL.md)
 -   [Tao x Superpowers 操作指引](docs/superpowers_playbook.md)
 -   [Skill Dispatcher Contract](docs/skill_dispatcher_contract.md)
 -   [Skill Routing 格式](docs/skill_routing_format.md)
@@ -110,7 +122,7 @@ skills/tao-of-coding/scripts/skill-dispatch.sh \
 
 ## 已導入 Superpowers 技能 (Phase 1)
 
-目前已在 `skills/tao-of-coding/references/superpowers/` 本地導入以下核心技能：
+目前已在 `skills/tao-of-gemini/references/superpowers/` 與 `skills/tao-of-opencode/references/superpowers/` 本地導入以下核心技能：
 
 - `brainstorming`
 - `writing-plans`
@@ -121,14 +133,14 @@ skills/tao-of-coding/scripts/skill-dispatch.sh \
 - `requesting-code-review`
 - `receiving-code-review`
 
-推薦流程：先依 `skills/tao-of-coding/SKILL.md` 做角色路由，再載入對應 `skills/tao-of-coding/references/superpowers/<skill>/SKILL.md` 執行。
+推薦流程：先依對應 profile 的 `SKILL.md` 做角色路由，再載入對應 `references/superpowers/<skill>/SKILL.md` 執行。
 
 ### 升級維護（Superpowers）
 
-- 同步腳本：`skills/tao-of-coding/scripts/sync-superpowers.sh`
-- 先乾跑：`skills/tao-of-coding/scripts/sync-superpowers.sh <commit-or-tag> --dry-run`
-- 再正式同步：`skills/tao-of-coding/scripts/sync-superpowers.sh <commit-or-tag>`
-- 同步來源與版本追蹤：`skills/tao-of-coding/references/superpowers/SOURCE.md`
+- 同步腳本：`skills/tao-of-gemini/scripts/sync-superpowers.sh`
+- 先乾跑：`skills/tao-of-gemini/scripts/sync-superpowers.sh <commit-or-tag> --dry-run`
+- 再正式同步：`skills/tao-of-gemini/scripts/sync-superpowers.sh <commit-or-tag>`
+- 同步來源與版本追蹤：`skills/tao-of-gemini/references/superpowers/SOURCE.md`
 
 ---
 
@@ -143,7 +155,7 @@ skills/tao-of-coding/scripts/skill-dispatch.sh \
 | **Gemini CLI** | 核心調用工具，用於執行角色化任務。 | `gemini --version` |
 | **Bash** | 執行 `scripts/*.sh`（dispatch / orchestrate / sync）。 | `bash --version` |
 | **Git** | 同步上游 superpowers 技能。 | `git --version` |
-| **OpenCode CLI** (選用) | 特定開源生態操作工具。 | `opencode --version` |
+| **OpenCode CLI** | `tao-of-opencode` 執行入口。 | `opencode --version` |
 
 ---
 
@@ -167,7 +179,7 @@ npx skill-linker
 
 啟動後：
 1.  按 `L` 進入列表。
-2.  選擇 `tao-of-coding`。
+2.  選擇 `tao-of-gemini` 或 `tao-of-opencode`。
 3.  選擇要連結的 Agent (如 Antigravity, Windsurf) 並確認。
 
 **備用方案：手動連結**
@@ -177,11 +189,15 @@ npx skill-linker
 ```bash
 # Antigravity
 mkdir -p ~/.gemini/antigravity/skills
-ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-coding ~/.gemini/antigravity/skills/tao-of-coding
+ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-gemini ~/.gemini/antigravity/skills/tao-of-gemini
 
 # Windsurf
 mkdir -p ~/.codeium/windsurf/skills
-ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-coding ~/.codeium/windsurf/skills/tao-of-coding
+ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-gemini ~/.codeium/windsurf/skills/tao-of-gemini
+
+# OpenCode profile（可並存）
+ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-opencode ~/.gemini/antigravity/skills/tao-of-opencode
+ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-opencode ~/.codeium/windsurf/skills/tao-of-opencode
 ```
 
 ---
@@ -201,7 +217,7 @@ ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-coding ~/.codeium/wind
 │   ├── celestial_skill_mapping.md
 │   └── project-spirit-analysis.md
 └── skills/
-    └── tao-of-coding/
+    └── tao-of-gemini/
         ├── SKILL.md
         ├── scripts/
         │   ├── sync-superpowers.sh
@@ -224,6 +240,20 @@ ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-coding ~/.codeium/wind
                 ├── verification-before-completion/
                 ├── requesting-code-review/
                 └── receiving-code-review/
+    └── tao-of-opencode/
+        ├── SKILL.md
+        ├── scripts/
+        │   ├── sync-superpowers.sh
+        │   ├── skill-dispatch.sh
+        │   └── orchestrate-skill.sh
+        └── references/
+            ├── explorer.md
+            ├── oracle.md
+            ├── librarian.md
+            ├── fixer.md
+            ├── designer.md
+            ├── skill-routing.conf
+            └── superpowers/
 ```
 
 ---

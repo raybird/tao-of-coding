@@ -1,6 +1,6 @@
 # Skill Routing Config Format
 
-`orchestrate-skill.sh` 目前使用純 Bash 解析 `skills/tao-of-coding/references/skill-routing.conf`。
+`orchestrate-skill.sh` 目前使用純 Bash 解析 `skills/tao-of-gemini/references/skill-routing.conf`。
 
 ## 格式
 

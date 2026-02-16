@@ -28,10 +28,10 @@ Execution options:
   --visited-skills <csv>        Existing visited skills (comma-separated)
 
 Path override options:
-  --root-skill-path <path>      Default: skills/tao-of-coding/SKILL.md
+  --root-skill-path <path>      Default: skills/tao-of-gemini/SKILL.md
   --role-guide-path <path>      Override role guide path
   --skill-file <path>           Override target skill file path
-  --skill-root <path>           Default: skills/tao-of-coding/references/superpowers
+  --skill-root <path>           Default: skills/tao-of-gemini/references/superpowers
 
 Output / runner:
   --output-file <path>          Save composed prompt to file
@@ -124,10 +124,10 @@ FORBID_ROOT_RELOAD="true"
 REQUEST_ID="req-$(date +%Y%m%d-%H%M%S)-$$"
 SKILL_STACK=""
 VISITED_SKILLS=""
-ROOT_SKILL_PATH="skills/tao-of-coding/SKILL.md"
+ROOT_SKILL_PATH="skills/tao-of-gemini/SKILL.md"
 ROLE_GUIDE_PATH=""
 SKILL_FILE=""
-SKILL_ROOT="skills/tao-of-coding/references/superpowers"
+SKILL_ROOT="skills/tao-of-gemini/references/superpowers"
 OUTPUT_FILE=""
 RUNNER_CMD=""
 DRY_RUN=0
@@ -272,8 +272,8 @@ if [[ "$DEPTH" -gt "$MAX_DEPTH" ]]; then
 fi
 
 if [[ "$EXECUTION_MODE" == "delegated" ]]; then
-  if [[ "$FORBID_ROOT_RELOAD" == "true" && "$SKILL" == "tao-of-coding" ]]; then
-    fail "E_ROOT_RELOAD_BLOCKED" "delegated mode cannot target tao-of-coding root"
+  if [[ "$FORBID_ROOT_RELOAD" == "true" && "$SKILL" == "tao-of-gemini" ]]; then
+    fail "E_ROOT_RELOAD_BLOCKED" "delegated mode cannot target tao-of-gemini root"
   fi
   if [[ "$EDGE_TYPE" != "requires_now" ]]; then
     fail "E_EDGE_NOT_EXECUTABLE" "auto-dispatch only executes requires_now edges"
@@ -284,10 +284,10 @@ if [[ "$EXECUTION_MODE" == "delegated" ]]; then
 fi
 
 if [[ -z "$ROLE_GUIDE_PATH" ]]; then
-  ROLE_GUIDE_PATH="skills/tao-of-coding/references/${ROLE}.md"
+  ROLE_GUIDE_PATH="skills/tao-of-gemini/references/${ROLE}.md"
 fi
 if [[ -z "$SKILL_FILE" ]]; then
-  if [[ "$SKILL" == "tao-of-coding" ]]; then
+  if [[ "$SKILL" == "tao-of-gemini" ]]; then
     SKILL_FILE="$ROOT_SKILL_PATH"
   else
     SKILL_FILE="$SKILL_ROOT/$SKILL/SKILL.md"
@@ -358,7 +358,7 @@ FINAL_PROMPT=""
 FINAL_PROMPT+="# Runtime Header\n\n"
 FINAL_PROMPT+="\`\`\`yaml\n$RUNTIME_HEADER\n\`\`\`\n\n"
 FINAL_PROMPT+="# Execution Contract\n\n"
-FINAL_PROMPT+="You are in delegated skill execution. If DEPTH > 0, do not reload tao-of-coding root protocol.\n\n"
+FINAL_PROMPT+="You are in delegated skill execution. If DEPTH > 0, do not reload tao-of-gemini root protocol.\n\n"
 FINAL_PROMPT+="# Context Files\n\n"
 
 if [[ "$EXECUTION_MODE" == "root" ]]; then

@@ -40,7 +40,7 @@
 - <驗證指令與結果摘要>
 
 ## Links
-- Protocol: `skills/tao-of-coding/SKILL.md`
+- Protocol: `skills/tao-of-gemini/SKILL.md`
 - Dispatcher Contract: `docs/skill_dispatcher_contract.md`
 ```
 
