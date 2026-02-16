@@ -4,7 +4,7 @@ description: 以多角色協作為核心的開發協議 (Tao of Coding)。指導
 compatibility: 需系統已安裝 `gemini` (CLI) 與 `opencode` (CLI) 且能執行。另需 `bash`（腳本執行）及 `git`（sync-superpowers 同步用）。
 metadata:
   author: sub-agents
-  version: "3.1.0"
+  version: "4.0.0"
 ---
 
 # 程式之道 (Tao of Coding)

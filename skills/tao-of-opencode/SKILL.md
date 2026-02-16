@@ -4,7 +4,7 @@ description: 以 OpenCode CLI 為執行入口的多角色協作開發協議。�
 compatibility: 需系統已安裝 `opencode` (CLI) 且能執行。另需 `bash`（腳本執行）及 `git`（sync-superpowers 同步用）。
 metadata:
   author: sub-agents
-  version: "3.1.0"
+  version: "4.0.0"
 ---
 
 # 程式之道 (Tao of Coding)
