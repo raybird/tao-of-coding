@@ -29,11 +29,11 @@
 
 | 角色 | 角色原型 | 預設模型 (OpenCode) | 職掌與能力 |
 | :--- | :--- | :--- | :--- |
-| **👁️ Explorer** | Explorer | `nvidia/deepseek-ai/deepseek-v4-pro` | 專精於專案偵查。瞬間掃描檔案結構、追蹤依賴關係，揭開陌生程式碼的面紗。 |
-| **🍶 Oracle** | Oracle | `nvidia/qwen/qwen3-next-80b-a3b-thinking` | 專注架構分析與重構策略。當架構混壞或 Bug 難解時，提供可執行方案。 |
-| **🖊️ Librarian** | Librarian | `nvidia/moonshotai/kimi-k2.6` | 掌管文運。負責撰寫文件、API 註解與國際化翻譯，條理分明。 |
+| **👁️ Explorer** | Explorer | `opencode/deepseek-v4-flash-free` | 專精於專案偵查。瞬間掃描檔案結構、追蹤依賴關係，揭開陌生程式碼的面紗。 |
+| **🍶 Oracle** | Oracle | `nvidia/openai/gpt-oss-120b` | 專注架構分析與重構策略。當架構混壞或 Bug 難解時，提供可執行方案。 |
+| **🖊️ Librarian** | Librarian | `nvidia/minimaxai/minimax-m2.7` | 掌管文運。負責撰寫文件、API 註解與國際化翻譯，條理分明。 |
 | **🛠️ Fixer** | Fixer | `nvidia/qwen/qwen3-coder-480b-a35b-instruct` | 實作與修復的能手。負責程式碼修正、單元測試補全，以最高效率敲正每一行程式碼。 |
-| **🧵 Designer** | Designer | `nvidia/meta/llama-3.2-90b-vision-instruct` | 專注 UI/UX 設計。負責介面結構、互動與視覺一致性。 |
+| **🧵 Designer** | Designer | `nvidia/microsoft/phi-4-multimodal-instruct` | 專注 UI/UX 設計。負責介面結構、互動與視覺一致性。 |
 
 ---
 
@@ -57,11 +57,11 @@ cat component.js | opencode run --model "nvidia/qwen/qwen3-coder-480b-a35b-instr
   "請為此組件編寫測試案例。"
 
 # 讓 Oracle 分析架構
-cat architecture.md | opencode run --model "nvidia/qwen/qwen3-next-80b-a3b-thinking" \
+cat architecture.md | opencode run --model "nvidia/openai/gpt-oss-120b" \
   "Oracle請根據工程原則提供更好的架構設計。"
 
 # 讓 Librarian 撰寫 README
-opencode run --model "nvidia/moonshotai/kimi-k2.6" \
+opencode run --model "nvidia/minimaxai/minimax-m2.7" \
   "為本專案撰寫一份清晰易懂的 README。"
 ```
 
@@ -107,6 +107,7 @@ skills/tao-of-opencode/scripts/skill-dispatch.sh \
 -   [Release Note 模板](docs/release_note_template.md)
 -   [角色職能與技能對照表](docs/celestial_skill_mapping.md)
 -   [專案精神深度分析](docs/project-spirit-analysis.md)
+-   [模型維護 SOP](docs/model-maintenance-sop.md)
 
 ## 已導入 Superpowers 技能 (Phase 1)
 
@@ -129,6 +130,47 @@ skills/tao-of-opencode/scripts/skill-dispatch.sh \
 - 先乾跑：`skills/tao-of-opencode/scripts/sync-superpowers.sh <commit-or-tag> --dry-run`
 - 再正式同步：`skills/tao-of-opencode/scripts/sync-superpowers.sh <commit-or-tag>`
 - 同步來源與版本追蹤：`skills/tao-of-opencode/references/superpowers/SOURCE.md`
+
+### 模型能力評估（Model Assessment）
+
+當 NVIDIA NIM 模型有異動（新模型上線、舊模型 EOL）時，執行評估腳本重新檢驗：
+
+```bash
+# 預覽將測試的模型（不實際呼叫）
+bash skills/tao-of-opencode/scripts/assess-models.sh --dry-run
+
+# 只評估 S、A 梯隊
+bash skills/tao-of-opencode/scripts/assess-models.sh --tier S,A
+
+# 全量評估（約 25–40 分鐘）
+bash skills/tao-of-opencode/scripts/assess-models.sh
+
+# 驗證單一模型
+bash skills/tao-of-opencode/scripts/assess-models.sh --model nvidia/deepseek-ai/deepseek-v4-pro
+```
+
+- 模型清單與梯隊定義：`skills/tao-of-opencode/references/model-registry.conf`
+- 評估報告輸出：`docs/model-assessment.md`
+
+當有新模型上線或懷疑某模型已 EOL，先執行 refresh 確認差異：
+
+```bash
+# 對比 opencode models 與 registry，顯示新增／消失的模型
+bash skills/tao-of-opencode/scripts/refresh-model-registry.sh
+
+# 自動將新模型補入 registry（tier 標為 ?，待人工分級）
+bash skills/tao-of-opencode/scripts/refresh-model-registry.sh --add-new
+```
+
+標準維護流程：
+
+```
+refresh-model-registry.sh   →   手動設定 tier / 標記 EOL
+        ↓
+assess-models.sh --tier ?   →   評估新模型
+        ↓
+手動更新角色分配（SKILL.md / references/*.md）
+```
 
 ---
 

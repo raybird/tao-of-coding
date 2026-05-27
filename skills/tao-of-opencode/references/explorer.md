@@ -1,6 +1,6 @@
 ---
 role: Explorer (Explorer)
-model: nvidia/deepseek-ai/deepseek-v4-pro
+model: opencode/deepseek-v4-flash-free
 ---
 
 # 角色指南：Explorer (Explorer)

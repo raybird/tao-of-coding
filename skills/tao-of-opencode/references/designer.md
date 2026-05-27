@@ -1,6 +1,6 @@
 ---
 role: Designer (Designer)
-model: nvidia/meta/llama-3.2-90b-vision-instruct
+model: nvidia/microsoft/phi-4-multimodal-instruct
 ---
 
 # 角色指南：Designer (Designer)

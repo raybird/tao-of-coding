@@ -1,6 +1,6 @@
 ---
 role: Oracle (Oracle)
-model: nvidia/qwen/qwen3-next-80b-a3b-thinking
+model: nvidia/openai/gpt-oss-120b
 ---
 
 # 角色指南：Oracle (Oracle)

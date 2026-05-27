@@ -1,6 +1,7 @@
 ---
 role: Fixer (Fixer)
 model: nvidia/qwen/qwen3-coder-480b-a35b-instruct
+fallback_model: opencode/big-pickle
 ---
 
 # 角色指南：Fixer (Fixer)

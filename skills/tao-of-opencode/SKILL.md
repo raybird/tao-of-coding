@@ -32,25 +32,25 @@ metadata:
 以下對應基於 NVIDIA NIM 提供之免費模型清單：
 
 - `nvidia/deepseek-ai/deepseek-v4-pro`
-- `nvidia/qwen/qwen3-next-80b-a3b-thinking`
-- `nvidia/moonshotai/kimi-k2-thinking`
-- `nvidia/moonshotai/kimi-k2.6`
+- `nvidia/qwen/qwen3-next-80b-a3b-instruct`
+- `nvidia/qwen/qwen3.5-122b-a10b`
 - `nvidia/minimaxai/minimax-m2.7`
 - `nvidia/qwen/qwen3-coder-480b-a35b-instruct`
-- `nvidia/meta/llama-3.2-90b-vision-instruct`
+- `nvidia/meta/llama-4-maverick-17b-128e-instruct`
+- `nvidia/microsoft/phi-4-multimodal-instruct`
 
 建議預設與備援如下：
 
 | 角色 | 預設模型 | 備援模型 | 說明 |
 | :--- | :--- | :--- | :--- |
-| Explorer | `nvidia/deepseek-ai/deepseek-v4-pro` | `nvidia/deepseek-ai/deepseek-v4-flash` | 優先深度理解與結構定位，備援提供極速回應。 |
-| Oracle | `nvidia/qwen/qwen3-next-80b-a3b-thinking` | `nvidia/moonshotai/kimi-k2-thinking` | 優先複雜邏輯推理與深度思考（CoT），適合方案決策。 |
-| Librarian | `nvidia/moonshotai/kimi-k2.6` | `nvidia/minimaxai/minimax-m2.7` | 優先長上下文與中文語意表達，適合文件與翻譯。 |
-| Fixer | `nvidia/qwen/qwen3-coder-480b-a35b-instruct` | `nvidia/deepseek-ai/deepseek-v4-pro` | 專精於高品質程式碼生成、除錯與測試補全。 |
-| Designer | `nvidia/meta/llama-3.2-90b-vision-instruct` | `nvidia/qwen/qwen2.5-coder-32b-instruct` | 優先多模態視覺理解與高還原度前端排版。 |
+| Explorer | `opencode/deepseek-v4-flash-free` | `nvidia/deepseek-ai/deepseek-v4-pro` | 優先免費快速掃描，備援切換深度推理。 |
+| Oracle | `nvidia/openai/gpt-oss-120b` | `nvidia/nvidia/nemotron-3-super-120b-a12b` | 優先複雜邏輯推理與架構決策，評估驗證推理最準確。 |
+| Librarian | `nvidia/minimaxai/minimax-m2.7` | `nvidia/qwen/qwen3.5-122b-a10b` | 優先長上下文與中文語意表達，適合文件與翻譯。 |
+| Fixer | `nvidia/qwen/qwen3-coder-480b-a35b-instruct` | `opencode/big-pickle` | 專精於高品質程式碼生成、除錯與測試補全。 |
+| Designer | `nvidia/microsoft/phi-4-multimodal-instruct` | `nvidia/google/gemma-4-31b-it` | 優先多模態視覺理解與高還原度前端排版。 |
 
 若任務以「回應速度」優先，可整體降級使用各系列的 Flash 版模型（如 `nvidia/deepseek-ai/deepseek-v4-flash`）；
-若任務以「品質/推理」優先，優先使用 `nvidia/qwen/qwen3-next-80b-a3b-thinking` 或 `nvidia/qwen/qwen3-coder-480b-a35b-instruct`。
+若任務以「品質/推理」優先，優先使用 `nvidia/openai/gpt-oss-120b` 或 `nvidia/qwen/qwen3-coder-480b-a35b-instruct`。
 
 ## 技能路由表 (Skill Routing)
 

@@ -1,6 +1,6 @@
 ---
 role: Librarian (Librarian)
-model: nvidia/moonshotai/kimi-k2.6
+model: nvidia/minimaxai/minimax-m2.7
 ---
 
 # 角色指南：Librarian (Librarian)
