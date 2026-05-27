@@ -23,6 +23,9 @@ Routing / execution options:
   --allow-reentry <bool>        true|false (default: false)
   --forbid-root-reload <bool>   true|false (default: true)
   --route-config <path>         Routing rule conf path
+  --semantic-model <model>      Model for semantic fallback routing
+                                (default: opencode/deepseek-v4-flash-free)
+  --no-semantic-route           Disable semantic fallback; use regex only
 
 Runner / output options:
   --runner-cmd <cmd>            Pass composed prompt to command stdin
@@ -32,6 +35,8 @@ Runner / output options:
 
 Notes:
   - This script auto-routes dialogue to role+skill, then delegates to skill-dispatch.sh.
+  - When regex patterns produce no match, a lightweight model call (semantic routing)
+    selects the best role+skill. Pass --no-semantic-route to disable.
   - For custom routing overrides, call skill-dispatch.sh directly.
 USAGE
 }
@@ -170,6 +175,58 @@ match_route() {
   printf '%s\t%s\t%s' "$DEFAULT_ROLE" "$DEFAULT_SKILL" "${DEFAULT_REASON:-fallback}"
 }
 
+semantic_route() {
+  local prompt="$1"
+  local routing_prompt result role skill
+
+  routing_prompt=$(cat <<PROMPT
+You are a task router for a multi-agent development framework.
+Given the user request below, pick the single best role+skill pair.
+
+Available pairs (role + skill → when to use):
+  oracle     + brainstorming              → ideation, requirements clarification, trade-off analysis, architecture decisions
+  oracle     + writing-plans             → create a structured implementation plan
+  explorer   + executing-plans           → run or batch-execute an existing plan
+  fixer      + test-driven-development   → TDD workflow, write failing tests first
+  fixer      + systematic-debugging      → debug errors, trace root causes, investigate failures or flaky tests
+  fixer      + verification-before-completion → verify work is genuinely done before claiming complete
+  librarian  + requesting-code-review    → prepare or request a peer/AI code review
+  fixer      + receiving-code-review     → process review feedback, address review comments
+
+User request:
+$prompt
+
+Reply with ONLY these two lines — no explanation, no markdown:
+role=<role>
+skill=<skill>
+PROMPT
+)
+
+  result=$(printf '%s' "$routing_prompt" | bash -lc "opencode run --model $SEMANTIC_ROUTE_MODEL" 2>/dev/null) || true
+
+  role=$(printf '%s' "$result" | grep '^role=' | head -1 | cut -d= -f2 | tr -d '[:space:]')
+  skill=$(printf '%s' "$result" | grep '^skill=' | head -1 | cut -d= -f2 | tr -d '[:space:]')
+
+  local reason="semantic"
+
+  case "$role" in
+    explorer|oracle|librarian|fixer|designer) ;;
+    *)
+      printf 'semantic_route: unrecognised role "%s", falling back to default\n' "$role" >&2
+      role="$DEFAULT_ROLE"
+      skill="$DEFAULT_SKILL"
+      reason="semantic-error"
+      ;;
+  esac
+
+  if [[ -z "$skill" ]]; then
+    skill="$DEFAULT_SKILL"
+    reason="semantic-error"
+  fi
+
+  printf '%s\t%s\t%s' "$role" "$skill" "$reason"
+}
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPO_ROOT="$(cd "$SKILL_DIR/../.." && pwd)"
@@ -190,6 +247,8 @@ VISITED_SKILLS=""
 ALLOW_REENTRY="false"
 FORBID_ROOT_RELOAD="true"
 ROUTE_CONFIG_PATH="skills/tao-of-opencode/references/skill-routing.conf"
+SEMANTIC_ROUTE_MODEL="opencode/deepseek-v4-flash-free"
+NO_SEMANTIC_ROUTE=0
 RUNNER_CMD=""
 OUTPUT_FILE=""
 DRY_RUN=0
@@ -248,6 +307,14 @@ while (($#)); do
       ROUTE_CONFIG_PATH="${2:-}"
       shift 2
       ;;
+    --semantic-model)
+      SEMANTIC_ROUTE_MODEL="${2:-}"
+      shift 2
+      ;;
+    --no-semantic-route)
+      NO_SEMANTIC_ROUTE=1
+      shift
+      ;;
     --runner-cmd)
       RUNNER_CMD="${2:-}"
       shift 2
@@ -298,14 +365,19 @@ if [[ -z "$EXECUTION_MODE" ]]; then
 fi
 
 route_line="$(match_route "$PROMPT_TEXT")"
-
 IFS=$'\t' read -r route_role route_skill route_reason <<< "$route_line"
+
+if [[ "$route_reason" == "fallback" && "$NO_SEMANTIC_ROUTE" -eq 0 ]]; then
+  semantic_line="$(semantic_route "$PROMPT_TEXT")"
+  IFS=$'\t' read -r route_role route_skill route_reason <<< "$semantic_line"
+fi
 
 if [[ "$DRY_RUN" -eq 1 ]]; then
   printf 'route.role=%s\n' "$route_role"
   printf 'route.skill=%s\n' "$route_skill"
   printf 'route.reason=%s\n' "$route_reason"
   printf 'route.config=%s\n' "$ROUTE_CONFIG_PATH"
+  printf 'route.semantic_model=%s\n' "$( [[ "$NO_SEMANTIC_ROUTE" -eq 1 ]] && printf 'disabled' || printf '%s' "$SEMANTIC_ROUTE_MODEL" )"
 fi
 
 dispatch_args=(
