@@ -29,11 +29,11 @@
 
 | 角色 | 角色原型 | 預設模型 (OpenCode) | 職掌與能力 |
 | :--- | :--- | :--- | :--- |
-| **👁️ Explorer** | Explorer | `opencode/gpt-5-nano` | 專精於專案偵查。瞬間掃描檔案結構、追蹤依賴關係，揭開陌生程式碼的面紗。 |
-| **🍶 Oracle** | Oracle | `opencode/kimi-k2.5-free` | 專注架構分析與重構策略。當架構混壞或 Bug 難解時，提供可執行方案。 |
-| **🖊️ Librarian** | Librarian | `opencode/minimax-m2.5-free` | 掌管文運。負責撰寫文件、API 註解與國際化翻譯，條理分明。 |
-| **🛠️ Fixer** | Fixer | `opencode/kimi-k2.5-free` | 實作與修復的能手。負責程式碼修正、單元測試補全，以最高效率敲正每一行程式碼。 |
-| **🧵 Designer** | Designer | `opencode/minimax-m2.5-free` | 專注 UI/UX 設計。負責介面結構、互動與視覺一致性。 |
+| **👁️ Explorer** | Explorer | `nvidia/deepseek-ai/deepseek-v4-pro` | 專精於專案偵查。瞬間掃描檔案結構、追蹤依賴關係，揭開陌生程式碼的面紗。 |
+| **🍶 Oracle** | Oracle | `nvidia/qwen/qwen3-next-80b-a3b-thinking` | 專注架構分析與重構策略。當架構混壞或 Bug 難解時，提供可執行方案。 |
+| **🖊️ Librarian** | Librarian | `nvidia/moonshotai/kimi-k2.6` | 掌管文運。負責撰寫文件、API 註解與國際化翻譯，條理分明。 |
+| **🛠️ Fixer** | Fixer | `nvidia/qwen/qwen3-coder-480b-a35b-instruct` | 實作與修復的能手。負責程式碼修正、單元測試補全，以最高效率敲正每一行程式碼。 |
+| **🧵 Designer** | Designer | `nvidia/meta/llama-3.2-90b-vision-instruct` | 專注 UI/UX 設計。負責介面結構、互動與視覺一致性。 |
 
 ---
 
@@ -53,15 +53,15 @@
 
 ```bash
 # 讓 Fixer 撰寫測試
-cat component.js | opencode run --model "opencode/kimi-k2.5-free" \
+cat component.js | opencode run --model "nvidia/qwen/qwen3-coder-480b-a35b-instruct" \
   "請為此組件編寫測試案例。"
 
 # 讓 Oracle 分析架構
-cat architecture.md | opencode run --model "opencode/kimi-k2.5-free" \
+cat architecture.md | opencode run --model "nvidia/qwen/qwen3-next-80b-a3b-thinking" \
   "Oracle請根據工程原則提供更好的架構設計。"
 
 # 讓 Librarian 撰寫 README
-opencode run --model "opencode/minimax-m2.5-free" \
+opencode run --model "nvidia/moonshotai/kimi-k2.6" \
   "為本專案撰寫一份清晰易懂的 README。"
 ```
 
@@ -74,7 +74,7 @@ opencode run --model "opencode/minimax-m2.5-free" \
 skills/tao-of-opencode/scripts/orchestrate-skill.sh \
   --prompt "這個測試一直失敗，先找根因不要修" \
   --depth 0 \
-  --runner-cmd 'opencode run --model "opencode/kimi-k2.5-free" "$(cat)"'
+  --runner-cmd 'opencode run --model "nvidia/deepseek-ai/deepseek-v4-pro" "$(cat)"'
 
 # 直接指定角色與技能（進階）
 skills/tao-of-opencode/scripts/skill-dispatch.sh \
@@ -86,7 +86,7 @@ skills/tao-of-opencode/scripts/skill-dispatch.sh \
   --edge-type requires_now \
   --visited-skills writing-plans,executing-plans \
   --prompt "請先做根因分析，暫不提修補方案" \
-  --runner-cmd 'opencode run --model "opencode/kimi-k2.5-free" "$(cat)"'
+  --runner-cmd 'opencode run --model "nvidia/deepseek-ai/deepseek-v4-pro" "$(cat)"'
 ```
 
 ### 工具調用與查證規範（摘要）

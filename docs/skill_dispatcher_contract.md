@@ -127,5 +127,5 @@ skills/tao-of-opencode/scripts/skill-dispatch.sh \
   --edge-type requires_now \
   --visited-skills writing-plans,executing-plans \
   --prompt "請依技能流程追查根因，先不要提出修復" \
-  --runner-cmd 'opencode run --model "opencode/kimi-k2.5-free" "$(cat)"'
+  --runner-cmd 'opencode run --model "nvidia/deepseek-ai/deepseek-v4-pro" "$(cat)"'
 ```

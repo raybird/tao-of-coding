@@ -1,6 +1,6 @@
 ---
 role: Designer (Designer)
-model: opencode/minimax-m2.5-free
+model: nvidia/meta/llama-3.2-90b-vision-instruct
 ---
 
 # 角色指南：Designer (Designer)

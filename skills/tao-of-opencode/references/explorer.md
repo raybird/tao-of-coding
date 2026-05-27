@@ -1,6 +1,6 @@
 ---
 role: Explorer (Explorer)
-model: opencode/gpt-5-nano
+model: nvidia/deepseek-ai/deepseek-v4-pro
 ---
 
 # 角色指南：Explorer (Explorer)

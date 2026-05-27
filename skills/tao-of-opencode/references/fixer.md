@@ -1,6 +1,6 @@
 ---
 role: Fixer (Fixer)
-model: opencode/kimi-k2.5-free
+model: nvidia/qwen/qwen3-coder-480b-a35b-instruct
 ---
 
 # 角色指南：Fixer (Fixer)

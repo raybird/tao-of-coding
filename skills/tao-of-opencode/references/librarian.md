@@ -1,6 +1,6 @@
 ---
 role: Librarian (Librarian)
-model: opencode/minimax-m2.5-free
+model: nvidia/moonshotai/kimi-k2.6
 ---
 
 # 角色指南：Librarian (Librarian)

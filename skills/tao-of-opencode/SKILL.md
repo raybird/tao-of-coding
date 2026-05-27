@@ -27,27 +27,30 @@ metadata:
 | **Fixer** | Fixer | [fixer.md](references/fixer.md) | **實作專家**。實作與修復的能手。負責單元測試、語法修正。 |
 | **Designer** | Designer | [designer.md](references/designer.md) | **設計專家**。負責 UI/UX 與前端體驗。 |
 
-## OpenCode 免費模型建議（角色預設）
+## OpenCode 免費模型建議（角色預設 - NVIDIA NIM 終極版）
 
-以下對應基於目前可用的 opencode provider 免費模型清單：
+以下對應基於 NVIDIA NIM 提供之免費模型清單：
 
-- `opencode/big-pickle`
-- `opencode/gpt-5-nano`
-- `opencode/kimi-k2.5-free`
-- `opencode/minimax-m2.5-free`
+- `nvidia/deepseek-ai/deepseek-v4-pro`
+- `nvidia/qwen/qwen3-next-80b-a3b-thinking`
+- `nvidia/moonshotai/kimi-k2-thinking`
+- `nvidia/moonshotai/kimi-k2.6`
+- `nvidia/minimaxai/minimax-m2.7`
+- `nvidia/qwen/qwen3-coder-480b-a35b-instruct`
+- `nvidia/meta/llama-3.2-90b-vision-instruct`
 
 建議預設與備援如下：
 
 | 角色 | 預設模型 | 備援模型 | 說明 |
 | :--- | :--- | :--- | :--- |
-| Explorer | `opencode/gpt-5-nano` | `opencode/big-pickle` | 優先速度與低成本，適合結構掃描與快速定位。 |
-| Oracle | `opencode/kimi-k2.5-free` | `opencode/minimax-m2.5-free` | 優先推理與長上下文，適合方案分析與架構取捨。 |
-| Librarian | `opencode/minimax-m2.5-free` | `opencode/kimi-k2.5-free` | 優先語言組織與表達品質，適合文件與摘要。 |
-| Fixer | `opencode/kimi-k2.5-free` | `opencode/gpt-5-nano` | 主要處理修復與測試；小修可降級至 nano。 |
-| Designer | `opencode/minimax-m2.5-free` | `opencode/kimi-k2.5-free` | 偏重 UI/UX 文案與互動敘述。 |
+| Explorer | `nvidia/deepseek-ai/deepseek-v4-pro` | `nvidia/deepseek-ai/deepseek-v4-flash` | 優先深度理解與結構定位，備援提供極速回應。 |
+| Oracle | `nvidia/qwen/qwen3-next-80b-a3b-thinking` | `nvidia/moonshotai/kimi-k2-thinking` | 優先複雜邏輯推理與深度思考（CoT），適合方案決策。 |
+| Librarian | `nvidia/moonshotai/kimi-k2.6` | `nvidia/minimaxai/minimax-m2.7` | 優先長上下文與中文語意表達，適合文件與翻譯。 |
+| Fixer | `nvidia/qwen/qwen3-coder-480b-a35b-instruct` | `nvidia/deepseek-ai/deepseek-v4-pro` | 專精於高品質程式碼生成、除錯與測試補全。 |
+| Designer | `nvidia/meta/llama-3.2-90b-vision-instruct` | `nvidia/qwen/qwen2.5-coder-32b-instruct` | 優先多模態視覺理解與高還原度前端排版。 |
 
-若任務以「回應速度」優先，可整體降一級到 `opencode/gpt-5-nano`；
-若任務以「品質/推理」優先，優先使用 `opencode/kimi-k2.5-free` 或 `opencode/minimax-m2.5-free`。
+若任務以「回應速度」優先，可整體降級使用各系列的 Flash 版模型（如 `nvidia/deepseek-ai/deepseek-v4-flash`）；
+若任務以「品質/推理」優先，優先使用 `nvidia/qwen/qwen3-next-80b-a3b-thinking` 或 `nvidia/qwen/qwen3-coder-480b-a35b-instruct`。
 
 ## 技能路由表 (Skill Routing)
 
@@ -153,7 +156,7 @@ bash scripts/orchestrate-skill.sh --prompt "請掃描目錄結構" --dry-run
 # 自動路由並透過 opencode 執行
 bash scripts/orchestrate-skill.sh \
   --prompt "這個函數有 bug，請除錯" \
-  --runner-cmd "opencode run --model opencode/kimi-k2.5-free"
+  --runner-cmd "opencode run --model nvidia/deepseek-ai/deepseek-v4-pro"
 ```
 
 ### skill-dispatch.sh — 手動指定角色 + 技能委派
@@ -171,7 +174,7 @@ bash scripts/skill-dispatch.sh \
 bash scripts/skill-dispatch.sh \
   --role fixer --skill systematic-debugging \
   --prompt "找出此函數的根因" \
-  --runner-cmd "opencode run --model opencode/kimi-k2.5-free"
+  --runner-cmd "opencode run --model nvidia/deepseek-ai/deepseek-v4-pro"
 ```
 
 ### sync-superpowers.sh — 同步上游技能
@@ -226,7 +229,7 @@ pattern=unexpected
 # 一鍵自動路由 + 執行
 bash scripts/orchestrate-skill.sh \
   --prompt "你的任務描述" \
-  --runner-cmd "opencode run --model opencode/kimi-k2.5-free"
+  --runner-cmd "opencode run --model nvidia/deepseek-ai/deepseek-v4-pro"
 ```
 
 ### 手動調用

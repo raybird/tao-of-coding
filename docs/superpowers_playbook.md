@@ -45,7 +45,7 @@
 # 範例：除錯任務（Fixer + systematic-debugging）
 cat skills/tao-of-opencode/references/fixer.md \
     skills/tao-of-opencode/references/superpowers/systematic-debugging/SKILL.md \
-| opencode run --model "opencode/kimi-k2.5-free" \
+| opencode run --model "nvidia/qwen/qwen3-coder-480b-a35b-instruct" \
   "Fixer專家，請依 systematic-debugging 四階段流程追查這個測試失敗的根因，先不要給修補方案。"
 ```
 
@@ -63,7 +63,7 @@ cat skills/tao-of-opencode/references/fixer.md \
 ```bash
 cat skills/tao-of-opencode/references/oracle.md \
     skills/tao-of-opencode/references/superpowers/brainstorming/SKILL.md \
-| opencode run --model "opencode/kimi-k2.5-free" \
+| opencode run --model "nvidia/qwen/qwen3-next-80b-a3b-thinking" \
   "Oracle請先用 brainstorming 流程澄清需求，再提出 2-3 種方案與取捨。"
 ```
 
@@ -73,13 +73,13 @@ cat skills/tao-of-opencode/references/oracle.md \
 # 先產生計畫
 cat skills/tao-of-opencode/references/oracle.md \
     skills/tao-of-opencode/references/superpowers/writing-plans/SKILL.md \
-| opencode run --model "opencode/kimi-k2.5-free" \
+| opencode run --model "nvidia/qwen/qwen3-next-80b-a3b-thinking" \
   "請為此需求輸出可執行的 implementation plan，存放到 docs/plans。"
 
 # 再按計畫執行
 cat skills/tao-of-opencode/references/explorer.md \
     skills/tao-of-opencode/references/superpowers/executing-plans/SKILL.md \
-| opencode run --model "opencode/gpt-5-nano" \
+| opencode run --model "nvidia/deepseek-ai/deepseek-v4-pro" \
   "請讀取 docs/plans/XXX.md，按 executing-plans 方式分批執行並在檢查點回報。"
 ```
 
@@ -88,7 +88,7 @@ cat skills/tao-of-opencode/references/explorer.md \
 ```bash
 cat skills/tao-of-opencode/references/fixer.md \
     skills/tao-of-opencode/references/superpowers/test-driven-development/SKILL.md \
-| opencode run --model "opencode/kimi-k2.5-free" \
+| opencode run --model "nvidia/qwen/qwen3-coder-480b-a35b-instruct" \
   "請用 TDD（RED-GREEN-REFACTOR）修復這個 bug，先寫會失敗的測試再實作。"
 ```
 
@@ -98,13 +98,13 @@ cat skills/tao-of-opencode/references/fixer.md \
 # 請求 code review
 cat skills/tao-of-opencode/references/librarian.md \
     skills/tao-of-opencode/references/superpowers/requesting-code-review/SKILL.md \
-| opencode run --model "opencode/minimax-m2.5-free" \
+| opencode run --model "nvidia/moonshotai/kimi-k2.6" \
   "請依 requesting-code-review 流程整理本次變更的 review 請求。"
 
 # 接收 code review
 cat skills/tao-of-opencode/references/fixer.md \
     skills/tao-of-opencode/references/superpowers/receiving-code-review/SKILL.md \
-| opencode run --model "opencode/kimi-k2.5-free" \
+| opencode run --model "nvidia/qwen/qwen3-coder-480b-a35b-instruct" \
   "請依 receiving-code-review 規範處理 reviewer 意見，先釐清再實作。"
 ```
 
@@ -160,7 +160,7 @@ skills/tao-of-opencode/scripts/skill-dispatch.sh \
   --edge-type requires_now \
   --visited-skills writing-plans,executing-plans \
   --prompt "請先做根因分析，暫不提修補方案" \
-  --runner-cmd 'opencode run --model "opencode/kimi-k2.5-free" "$(cat)"'
+  --runner-cmd 'opencode run --model "nvidia/deepseek-ai/deepseek-v4-pro" "$(cat)"'
 ```
 
 若希望保留「對話驅動自動觸發 skill」：
@@ -169,7 +169,7 @@ skills/tao-of-opencode/scripts/skill-dispatch.sh \
 skills/tao-of-opencode/scripts/orchestrate-skill.sh \
   --prompt "這個測試失敗了，先找根因不要修" \
   --depth 0 \
-  --runner-cmd 'opencode run --model "opencode/kimi-k2.5-free" "$(cat)"'
+  --runner-cmd 'opencode run --model "nvidia/deepseek-ai/deepseek-v4-pro" "$(cat)"'
 ```
 
 此腳本會先做 role+skill 自動路由，再把結果交給 `skill-dispatch.sh` 套用同一套防遞迴規則。

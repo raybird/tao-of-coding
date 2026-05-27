@@ -1,6 +1,6 @@
 ---
 role: Oracle (Oracle)
-model: opencode/kimi-k2.5-free
+model: nvidia/qwen/qwen3-next-80b-a3b-thinking
 ---
 
 # 角色指南：Oracle (Oracle)
