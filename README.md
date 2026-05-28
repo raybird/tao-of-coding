@@ -114,6 +114,23 @@ tasks.json 格式：
 ]
 ```
 
+### 自動迴圈執行（Phase 3）
+
+`loop-dispatch.sh` 串接 parallel-dispatch + reduce-envelopes，讀取每輪 reducer 的 `next_actions` 自動組成下一輪任務，直到收斂或達到 `--max-iterations`：
+
+```bash
+bash skills/tao-of-opencode/scripts/loop-dispatch.sh \
+  --tasks-file tasks.json \
+  --runner-cmd "opencode run --model opencode/deepseek-v4-flash-free" \
+  --reduce-runner-cmd "opencode run --model nvidia/openai/gpt-oss-120b" \
+  --max-iterations 3 \
+  --parallelism 3 \
+  --isolate-workspace \
+  --summary-dir /tmp/my-loop-run
+```
+
+每輪在 `<summary-dir>/iter-NN/` 下產生 `summary.json` 與 `reduced.json`；最終 reduced envelope 輸出到 stdout。
+
 ### Envelope 驗證
 
 ```bash

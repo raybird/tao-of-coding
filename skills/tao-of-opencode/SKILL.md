@@ -228,6 +228,23 @@ bash scripts/validate-agent-message.sh <message.json>
 bash scripts/validate-agent-message.sh --extract <agent-output.txt>
 ```
 
+### loop-dispatch.sh — 自動迴圈執行
+
+串接 `parallel-dispatch.sh` + `reduce-envelopes.sh`，讀取每輪 reducer 的 `next_actions` 自動組成下一輪任務，直到收斂（`next_actions` 為空）或達到 `--max-iterations`。
+
+```bash
+bash scripts/loop-dispatch.sh \
+  --tasks-file tasks.json \
+  --runner-cmd "opencode run --model opencode/deepseek-v4-flash-free" \
+  --reduce-runner-cmd "opencode run --model nvidia/openai/gpt-oss-120b" \
+  --max-iterations 3 \
+  --parallelism 3 \
+  --isolate-workspace \
+  --summary-dir /tmp/my-loop-run
+```
+
+每輪產生 `<summary-dir>/iter-NN/summary.json` 與 `iter-NN/reduced.json`，最終 reduced envelope 輸出到 stdout。
+
 ### run-gc.sh — 執行記錄清理
 
 清理 `.tao/runs/` 下的過期執行記錄（含 git worktree）。
