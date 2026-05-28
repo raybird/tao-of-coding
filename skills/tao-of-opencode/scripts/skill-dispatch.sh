@@ -39,11 +39,19 @@ Output / runner:
   --dry-run                     Print resolved dispatch state and exit
   -h, --help                    Show this help
 
+Envelope validation (only when --runner-cmd is set):
+  --no-validate                 Skip JSON envelope validation
+  --max-retries <n>             Retry malformed output up to N times (default: 1)
+  --fallback-runner-cmd <cmd>   Runner used after primary retries exhausted
+  --runs-dir <path>             Where to save per-request artifacts
+                                (default: .tao/runs)
+
 Errors:
   E_ROOT_RELOAD_BLOCKED
   E_SKILL_REENTRY_BLOCKED
   E_DEPTH_LIMIT
   E_EDGE_NOT_EXECUTABLE
+  E_ENVELOPE_MALFORMED
 USAGE
 }
 
@@ -131,6 +139,10 @@ SKILL_ROOT="skills/tao-of-opencode/references/superpowers"
 OUTPUT_FILE=""
 RUNNER_CMD=""
 DRY_RUN=0
+VALIDATE=1
+MAX_RETRIES=1
+FALLBACK_RUNNER_CMD=""
+RUNS_DIR=".tao/runs"
 
 while (($#)); do
   case "$1" in
@@ -217,6 +229,22 @@ while (($#)); do
     --dry-run)
       DRY_RUN=1
       shift
+      ;;
+    --no-validate)
+      VALIDATE=0
+      shift
+      ;;
+    --max-retries)
+      MAX_RETRIES="${2:-}"
+      shift 2
+      ;;
+    --fallback-runner-cmd)
+      FALLBACK_RUNNER_CMD="${2:-}"
+      shift 2
+      ;;
+    --runs-dir)
+      RUNS_DIR="${2:-}"
+      shift 2
       ;;
     -h|--help)
       usage
@@ -354,12 +382,12 @@ VISITED_SKILLS: [$VISITED_SKILLS]
 EOF
 )
 
-FINAL_PROMPT=""
-FINAL_PROMPT+="# Runtime Header\n\n"
-FINAL_PROMPT+="\`\`\`yaml\n$RUNTIME_HEADER\n\`\`\`\n\n"
-FINAL_PROMPT+="# Execution Contract\n\n"
-FINAL_PROMPT+="You are in delegated skill execution. If DEPTH > 0, do not reload tao-of-opencode root protocol.\n\n"
-FINAL_PROMPT+="# Context Files\n\n"
+NL=$'\n'
+FINAL_PROMPT="# Runtime Header${NL}${NL}"
+FINAL_PROMPT+="\`\`\`yaml${NL}${RUNTIME_HEADER}${NL}\`\`\`${NL}${NL}"
+FINAL_PROMPT+="# Execution Contract${NL}${NL}"
+FINAL_PROMPT+="You are in delegated skill execution. If DEPTH > 0, do not reload tao-of-opencode root protocol.${NL}${NL}"
+FINAL_PROMPT+="# Context Files${NL}${NL}"
 
 if [[ "$EXECUTION_MODE" == "root" ]]; then
   FINAL_PROMPT+="$(read_file_block "$ROOT_SKILL_ABS" "$ROOT_SKILL_PATH")"
@@ -369,7 +397,13 @@ if [[ "$SKILL_FILE_ABS" != "$ROOT_SKILL_ABS" ]]; then
   FINAL_PROMPT+="$(read_file_block "$SKILL_FILE_ABS" "$SKILL_FILE")"
 fi
 
-FINAL_PROMPT+="# Task\n\n$PROMPT_TEXT\n"
+FINAL_PROMPT+="${NL}# Task${NL}${NL}${PROMPT_TEXT}${NL}${NL}"
+FINAL_PROMPT+="# Output Contract Reminder (v1.0)${NL}${NL}"
+FINAL_PROMPT+="Your final reply MUST be exactly one fenced JSON block (\`\`\`json ... \`\`\`), with no text before or after.${NL}"
+FINAL_PROMPT+="Follow the JSON structure shown in the role guide's '輸出契約' section — replace content but keep the schema shape.${NL}"
+FINAL_PROMPT+="Required fields: schema_version=\"1.0\", task_id, role=\"${ROLE}\", skill=\"${SKILL}\", status, outputs.summary.${NL}"
+FINAL_PROMPT+="Do NOT flatten nested fields (e.g. write \`outputs.findings\` as a string key); they must be nested inside the \`outputs\` object.${NL}"
+FINAL_PROMPT+="Long content (full code, plans, reports) goes into files referenced by outputs.artifacts[].path — do NOT inline them in the JSON.${NL}"
 
 if [[ "$DRY_RUN" -eq 1 ]]; then
   printf 'dispatch.mode=%s\n' "$EXECUTION_MODE"
@@ -390,8 +424,103 @@ if [[ -n "$OUTPUT_FILE" ]]; then
   printf '%s' "$FINAL_PROMPT" > "$OUTPUT_FILE"
 fi
 
-if [[ -n "$RUNNER_CMD" ]]; then
-  printf '%s' "$FINAL_PROMPT" | bash -lc "$RUNNER_CMD"
-else
+if [[ -z "$RUNNER_CMD" ]]; then
   printf '%s' "$FINAL_PROMPT"
+  exit 0
 fi
+
+if ! [[ "$MAX_RETRIES" =~ ^[0-9]+$ ]]; then
+  fail "E_BAD_ARG" "--max-retries must be a non-negative integer"
+fi
+
+VALIDATE_SCRIPT="$SCRIPT_DIR/validate-agent-message.sh"
+RUN_DIR_ABS="$REPO_ROOT/$RUNS_DIR/$REQUEST_ID"
+RAW_DIR="$RUN_DIR_ABS/raw"
+MSG_DIR="$RUN_DIR_ABS/messages"
+
+if [[ "$VALIDATE" -eq 0 ]]; then
+  # passthrough: keep prior behaviour
+  printf '%s' "$FINAL_PROMPT" | bash -lc "$RUNNER_CMD"
+  exit $?
+fi
+
+mkdir -p "$RAW_DIR" "$MSG_DIR"
+
+run_and_validate() {
+  local cmd="$1"
+  local attempt="$2"
+  local raw="$RAW_DIR/${ROLE}-${SKILL}-a${attempt}.raw"
+  local json="$MSG_DIR/${ROLE}-${SKILL}-a${attempt}.json"
+
+  printf '%s' "$FINAL_PROMPT" | bash -lc "$cmd" > "$raw" 2>&1
+  local rc=$?
+  printf '%s\t%s\t%s\n' "$attempt" "$rc" "$raw" >&2
+
+  if [[ $rc -ne 0 ]]; then
+    printf '  runner exit=%d\n' "$rc" >&2
+    return 10
+  fi
+
+  awk '
+    /^```json[[:space:]]*$/ { if (!done) { flag=1; next } }
+    /^```[[:space:]]*$/     { if (flag)  { flag=0; done=1; next } }
+    flag                    { print }
+  ' "$raw" > "$json"
+
+  if [[ ! -s "$json" ]]; then
+    printf '  no ```json block in output\n' >&2
+    return 11
+  fi
+
+  if bash "$VALIDATE_SCRIPT" "$json" --quiet 2>/dev/null; then
+    printf '%s\n' "$json"
+    return 0
+  fi
+
+  printf '  validation failed:\n' >&2
+  bash "$VALIDATE_SCRIPT" "$json" --quiet 2>&1 | sed 's/^/    /' >&2
+  return 12
+}
+
+printf '=== dispatch %s (role=%s skill=%s) ===\n' "$REQUEST_ID" "$ROLE" "$SKILL" >&2
+
+attempt=1
+total_attempts=$((MAX_RETRIES + 1))
+final_json=""
+for (( ; attempt <= total_attempts; attempt++ )); do
+  printf -- '-- attempt %d/%d (primary) --\n' "$attempt" "$total_attempts" >&2
+  if final_json=$(run_and_validate "$RUNNER_CMD" "$attempt"); then
+    break
+  fi
+  final_json=""
+done
+
+if [[ -z "$final_json" && -n "$FALLBACK_RUNNER_CMD" ]]; then
+  printf -- '-- fallback attempt (using --fallback-runner-cmd) --\n' >&2
+  if fb_json=$(run_and_validate "$FALLBACK_RUNNER_CMD" "fb"); then
+    final_json="$fb_json"
+  fi
+fi
+
+if [[ -z "$final_json" ]]; then
+  malformed="$MSG_DIR/${ROLE}-${SKILL}-malformed.json"
+  cat > "$malformed" <<EOF
+{
+  "schema_version": "1.0",
+  "task_id": "${ROLE}-${SKILL}-malformed",
+  "request_id": "$REQUEST_ID",
+  "role": "$ROLE",
+  "skill": "$SKILL",
+  "status": "malformed",
+  "outputs": { "summary": "All runner attempts (primary + fallback) failed to produce a valid agent message envelope. See raw outputs under $RAW_DIR." },
+  "errors": [{ "code": "E_ENVELOPE_MALFORMED", "message": "exhausted $total_attempts primary attempts plus fallback" }]
+}
+EOF
+  printf 'E_ENVELOPE_MALFORMED: no valid envelope after %d attempts; wrote stub to %s\n' \
+    "$total_attempts" "$malformed" >&2
+  cat "$malformed"
+  exit 1
+fi
+
+printf '=== ok: envelope saved to %s ===\n' "$final_json" >&2
+cat "$final_json"

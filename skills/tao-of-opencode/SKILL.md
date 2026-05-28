@@ -86,6 +86,19 @@ Superpowers 的來源版本與導入時間，統一以 `skills/tao-of-opencode/r
 | Explorer | `executing-plans` | `systematic-debugging` |
 | Designer | - | `brainstorming` |
 
+## Agent Message Contract (v1.0)
+
+所有 agent 呼叫的最終回覆**必須**是一段符合 [`references/agent-message.schema.json`](references/agent-message.schema.json) 的 JSON envelope（contract 說明見 [`references/agent-message.md`](references/agent-message.md)）。長內容寫到 `outputs.artifacts` 指向的檔案，不要塞進 JSON 字串。
+
+驗證：
+```bash
+bash skills/tao-of-opencode/scripts/validate-agent-message.sh <message.json>
+# 或從 agent 完整輸出中抽出 ```json block 再驗證
+bash skills/tao-of-opencode/scripts/validate-agent-message.sh --extract <agent-output.txt>
+```
+
+目前已套用樣板：`references/explorer.md`。其餘 role guide 將於 Phase 1 後續逐一遷移。
+
 ## 協作交付欄位定義 (Delivery Contract)
 
 以下三個欄位為**每次任務都必填**，若缺任一欄位不得宣告完成：
