@@ -46,6 +46,12 @@ Envelope validation (only when --runner-cmd is set):
   --runs-dir <path>             Where to save per-request artifacts
                                 (default: .tao/runs)
 
+Workspace isolation (only when --runner-cmd is set):
+  --isolate-workspace           Create a detached git worktree for this run;
+                                agent writes are contained in the workspace and
+                                do not affect the main repo. Worktree is kept
+                                for inspection; use run-gc.sh to prune later.
+
 Errors:
   E_ROOT_RELOAD_BLOCKED
   E_SKILL_REENTRY_BLOCKED
@@ -143,6 +149,7 @@ VALIDATE=1
 MAX_RETRIES=1
 FALLBACK_RUNNER_CMD=""
 RUNS_DIR=".tao/runs"
+ISOLATE_WORKSPACE=0
 
 while (($#)); do
   case "$1" in
@@ -245,6 +252,10 @@ while (($#)); do
     --runs-dir)
       RUNS_DIR="${2:-}"
       shift 2
+      ;;
+    --isolate-workspace)
+      ISOLATE_WORKSPACE=1
+      shift
       ;;
     -h|--help)
       usage
@@ -417,6 +428,7 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
   printf 'dispatch.visited_skills=%s\n' "$VISITED_SKILLS"
   printf 'dispatch.role_guide=%s\n' "$ROLE_GUIDE_PATH"
   printf 'dispatch.skill_file=%s\n' "$SKILL_FILE"
+  printf 'dispatch.isolate_workspace=%s\n' "$( [[ "$ISOLATE_WORKSPACE" -eq 1 ]] && printf 'true' || printf 'false' )"
   exit 0
 fi
 
@@ -437,6 +449,7 @@ VALIDATE_SCRIPT="$SCRIPT_DIR/validate-agent-message.sh"
 RUN_DIR_ABS="$REPO_ROOT/$RUNS_DIR/$REQUEST_ID"
 RAW_DIR="$RUN_DIR_ABS/raw"
 MSG_DIR="$RUN_DIR_ABS/messages"
+WORKSPACE_ABS="$RUN_DIR_ABS/workspace"
 
 if [[ "$VALIDATE" -eq 0 ]]; then
   # passthrough: keep prior behaviour
@@ -446,13 +459,25 @@ fi
 
 mkdir -p "$RAW_DIR" "$MSG_DIR"
 
+# Set up isolated worktree if requested.
+EFFECTIVE_RUNNER_PREFIX=""
+if [[ "$ISOLATE_WORKSPACE" -eq 1 ]]; then
+  if ! git -C "$REPO_ROOT" worktree add --detach "$WORKSPACE_ABS" HEAD > /dev/null 2>&1; then
+    fail "E_WORKTREE" "failed to create worktree at $WORKSPACE_ABS"
+  fi
+  printf '  workspace: %s\n' "$WORKSPACE_ABS" >&2
+  # Prepend cd so the runner operates inside the isolated workspace.
+  EFFECTIVE_RUNNER_PREFIX="cd $(printf '%q' "$WORKSPACE_ABS") && "
+fi
+
 run_and_validate() {
   local cmd="$1"
   local attempt="$2"
   local raw="$RAW_DIR/${ROLE}-${SKILL}-a${attempt}.raw"
   local json="$MSG_DIR/${ROLE}-${SKILL}-a${attempt}.json"
+  local effective_cmd="${EFFECTIVE_RUNNER_PREFIX}${cmd}"
 
-  printf '%s' "$FINAL_PROMPT" | bash -lc "$cmd" > "$raw" 2>&1
+  printf '%s' "$FINAL_PROMPT" | bash -lc "$effective_cmd" > "$raw" 2>&1
   local rc=$?
   printf '%s\t%s\t%s\n' "$attempt" "$rc" "$raw" >&2
 
