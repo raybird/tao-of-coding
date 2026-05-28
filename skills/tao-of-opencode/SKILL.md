@@ -97,7 +97,7 @@ bash skills/tao-of-opencode/scripts/validate-agent-message.sh <message.json>
 bash skills/tao-of-opencode/scripts/validate-agent-message.sh --extract <agent-output.txt>
 ```
 
-目前已套用樣板：`references/explorer.md`。其餘 role guide 將於 Phase 1 後續逐一遷移。
+目前已套用樣板：`explorer.md`、`oracle.md`、`fixer.md`、`librarian.md`、`designer.md`。
 
 ## 協作交付欄位定義 (Delivery Contract)
 
@@ -155,8 +155,10 @@ FORBID_ROOT_RELOAD: true
 
 ## 自動化工具 (Automation Scripts)
 
-`scripts/` 目錄提供三支 shell 腳本，用於自動化任務路由、委派和技能同步。
+`scripts/` 目錄提供 shell 腳本，用於自動化任務路由、委派、並行執行與維護。
 所有腳本皆可透過 `--help` 查看完整參數說明。
+
+**命名慣例**：腳本檔名統一使用 `kebab-case`（如 `skill-dispatch.sh`）；腳本內部變數使用 `UPPER_SNAKE_CASE`，函式名使用 `lower_snake_case`。這是 bash 社群慣例，非混用問題。
 
 ### orchestrate-skill.sh — 自動路由 + 委派
 
@@ -174,7 +176,7 @@ bash scripts/orchestrate-skill.sh \
 
 ### skill-dispatch.sh — 手動指定角色 + 技能委派
 
-跳過自動路由，直接指定角色與技能，組裝完整 prompt（含 Runtime Header、角色指南、技能文件），並透過 `--runner-cmd` 傳給任意 CLI，或以 `--output-file` 輸出到檔案。
+跳過自動路由，直接指定角色與技能，組裝完整 prompt（含 Runtime Header、角色指南、技能文件），並透過 `--runner-cmd` 傳給任意 CLI，或以 `--output-file` 輸出到檔案。支援 `--max-retries`、`--fallback-runner-cmd`、`--isolate-workspace`。
 
 ```bash
 # 產生組裝好的 prompt 到檔案
@@ -183,11 +185,57 @@ bash scripts/skill-dispatch.sh \
   --prompt "按計畫執行重構任務" \
   --output-file /tmp/composed-prompt.md
 
-# 直接 pipe 給 opencode 執行
+# 直接 pipe 給 opencode 執行，含重試與 workspace 隔離
 bash scripts/skill-dispatch.sh \
   --role fixer --skill systematic-debugging \
   --prompt "找出此函數的根因" \
+  --max-retries 2 --isolate-workspace \
   --runner-cmd "opencode run --model nvidia/deepseek-ai/deepseek-v4-pro"
+```
+
+### parallel-dispatch.sh — 多 Agent 並行執行
+
+同時觸發多個 agent（各自呼叫 `skill-dispatch.sh`），限制最大並發數，結束後輸出 summary JSON。
+
+```bash
+bash scripts/parallel-dispatch.sh \
+  --tasks-file tasks.json \
+  --parallelism 3 \
+  --runner-cmd "opencode run --model opencode/deepseek-v4-flash-free" \
+  --isolate-workspace \
+  --summary-file /tmp/summary.json
+```
+
+tasks.json 格式：`[{"role":"explorer","skill":"executing-plans","prompt":"..."}]`
+
+### reduce-envelopes.sh — 多 Agent 結果合流
+
+讀取 `parallel-dispatch.sh` 產生的 summary（或指定 envelope 目錄），呼叫 Oracle/brainstorming 合併所有 findings 並產出行動清單。
+
+```bash
+bash scripts/reduce-envelopes.sh \
+  --summary-file /tmp/summary.json \
+  --runner-cmd "opencode run --model nvidia/openai/gpt-oss-120b"
+```
+
+### validate-agent-message.sh — Envelope 結構驗證
+
+驗證 agent 輸出是否符合 Agent Message v1.0 schema。
+
+```bash
+bash scripts/validate-agent-message.sh <message.json>
+# 從 agent 完整輸出中抽取 ```json block 再驗證
+bash scripts/validate-agent-message.sh --extract <agent-output.txt>
+```
+
+### run-gc.sh — 執行記錄清理
+
+清理 `.tao/runs/` 下的過期執行記錄（含 git worktree）。
+
+```bash
+bash scripts/run-gc.sh                       # 乾跑：列出將移除的 runs
+bash scripts/run-gc.sh --execute             # 執行清理（預設保留 7 天）
+bash scripts/run-gc.sh --max-age 3 --execute # 自訂保留天數
 ```
 
 ### sync-superpowers.sh — 同步上游技能

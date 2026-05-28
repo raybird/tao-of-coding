@@ -89,6 +89,59 @@ skills/tao-of-opencode/scripts/skill-dispatch.sh \
   --runner-cmd 'opencode run --model "nvidia/deepseek-ai/deepseek-v4-pro" "$(cat)"'
 ```
 
+### Multi-Agent 並行執行
+
+```bash
+# 定義 tasks（JSON array），同時觸發多個 agent
+bash skills/tao-of-opencode/scripts/parallel-dispatch.sh \
+  --tasks-file tasks.json \
+  --parallelism 3 \
+  --runner-cmd "opencode run --model opencode/deepseek-v4-flash-free" \
+  --isolate-workspace \
+  --summary-file /tmp/summary.json
+
+# 合流多個 envelope，oracle 合成行動清單
+bash skills/tao-of-opencode/scripts/reduce-envelopes.sh \
+  --summary-file /tmp/summary.json \
+  --runner-cmd "opencode run --model nvidia/openai/gpt-oss-120b"
+```
+
+tasks.json 格式：
+```json
+[
+  { "role": "explorer", "skill": "executing-plans", "prompt": "掃描 src/ 模組結構" },
+  { "role": "fixer",    "skill": "systematic-debugging", "prompt": "追查 parse_date 的 None 錯誤" }
+]
+```
+
+### Envelope 驗證
+
+```bash
+# 驗證 agent 輸出是否符合 Agent Message v1.0 schema
+bash skills/tao-of-opencode/scripts/validate-agent-message.sh <message.json>
+
+# 從 agent 完整輸出中自動抽取 ```json block 再驗證
+bash skills/tao-of-opencode/scripts/validate-agent-message.sh --extract <agent-output.txt>
+```
+
+### 執行記錄維護
+
+每次 `skill-dispatch.sh` 或 `parallel-dispatch.sh` 執行，會在 `.tao/runs/<request-id>/` 下產生 raw 輸出與 envelope。使用 `run-gc.sh` 定期清理：
+
+```bash
+# 乾跑：列出 7 天前的過期 run
+bash skills/tao-of-opencode/scripts/run-gc.sh
+
+# 執行清理（連同 git worktree 一起移除）
+bash skills/tao-of-opencode/scripts/run-gc.sh --execute
+
+# 只清特定 run
+bash skills/tao-of-opencode/scripts/run-gc.sh --request-id <id> --execute
+
+# 自訂保留天數
+bash skills/tao-of-opencode/scripts/run-gc.sh --max-age 3 --execute
+```
+
 ### 工具調用與查證規範（摘要）
 
 以下規範與 `skills/tao-of-opencode/SKILL.md` 一致，未滿足不應宣告任務完成：
