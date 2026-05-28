@@ -131,67 +131,132 @@ log "=== loop-dispatch $REQUEST_ID (max_iterations=$MAX_ITERATIONS) ==="
 
 iteration=0
 final_envelope=""
-prev_next_tasks_json=""
+declare -A seen_fingerprints  # oscillation detection: fingerprint → iteration number
+
+# Compute a canonical fingerprint for a JSON tasks array (sorted by role/skill/prompt[:80]).
+fingerprint_tasks() {
+  python3 -c "
+import json, sys, hashlib
+tasks = json.loads(sys.stdin.read())
+keys = sorted(f\"{t.get('role','')}/{t.get('skill','')}/{t.get('prompt','')[:80]}\" for t in tasks)
+print(hashlib.sha256(json.dumps(keys).encode()).hexdigest()[:16])
+"
+}
 
 while (( iteration < MAX_ITERATIONS )); do
   iteration=$(( iteration + 1 ))
   iter_label="iter-$(printf '%02d' "$iteration")"
   iter_dir="$SUMMARY_DIR/$iter_label"
-  mkdir -p "$iter_dir"
+  envelopes_dir="$iter_dir/envelopes"
+  mkdir -p "$iter_dir" "$envelopes_dir"
 
   task_count=$(python3 -c "import json,sys; print(len(json.loads(sys.stdin.read())))" <<< "$CURRENT_TASKS_JSON")
   log ""
   log "--- $iter_label (tasks=$task_count) ---"
 
-  summary_file="$iter_dir/summary.json"
   iter_req_id="${REQUEST_ID}-${iter_label}"
 
-  # Build parallel-dispatch args.
-  pd_args=(
-    --tasks-json     "$CURRENT_TASKS_JSON"
-    --runner-cmd     "$RUNNER_CMD"
-    --parallelism    "$PARALLELISM"
-    --request-id     "$iter_req_id"
-    --max-retries    "$MAX_RETRIES"
-    --task-timeout   "$TASK_TIMEOUT"
-    --runs-dir       "$RUNS_DIR"
-    --summary-file   "$summary_file"
-  )
-  [[ -n "$FALLBACK_RUNNER_CMD" ]] && pd_args+=(--fallback-runner-cmd "$FALLBACK_RUNNER_CMD")
-  [[ "$ISOLATE_WORKSPACE" -eq 1 ]] && pd_args+=(--isolate-workspace)
-  [[ "$NO_VALIDATE"       -eq 1 ]] && pd_args+=(--no-validate)
-  [[ "$QUIET"             -eq 1 ]] && pd_args+=(--quiet)
+  # Topological sort: split CURRENT_TASKS_JSON into ordered waves.
+  # Tasks whose depends_on are all satisfied by earlier waves run together.
+  waves_json=$(python3 - <<PYEOF
+import json, sys
 
-  if ! bash "$PARALLEL_SCRIPT" "${pd_args[@]}"; then
-    log "  [warn] parallel-dispatch reported failures — continuing to reduce"
-  fi
+tasks = json.loads("""$CURRENT_TASKS_JSON""")
+# Build id set
+id_set = {t.get("task_id", f"loop-task-{i}") for i, t in enumerate(tasks)}
 
-  # Reduce envelopes.
+completed = set()
+waves = []
+remaining = list(range(len(tasks)))
+
+while remaining:
+    wave = []
+    for idx in remaining:
+        t = tasks[idx]
+        deps = t.get("depends_on", [])
+        # Only block on deps that are sibling task_ids; ignore external references
+        unmet = [d for d in deps if d in id_set and d not in completed]
+        if not unmet:
+            wave.append(idx)
+    if not wave:
+        wave = remaining[:]  # break circular deps by running all remaining
+    for idx in wave:
+        tid = tasks[idx].get("task_id", f"loop-task-{idx}")
+        completed.add(tid)
+        remaining.remove(idx)
+    # Strip depends_on before passing to parallel-dispatch (not a valid task field)
+    waves.append([{k: v for k, v in tasks[idx].items() if k != "depends_on"} for idx in wave])
+
+print(json.dumps(waves))
+PYEOF
+)
+
+  wave_count=$(python3 -c "import json,sys; print(len(json.loads(sys.stdin.read())))" <<< "$waves_json")
+  log "  waves=$wave_count"
+
+  # Execute each wave sequentially; envelopes accumulate in envelopes_dir.
+  wave_idx=0
+  for (( w = 0; w < wave_count; w++ )); do
+    wave_tasks=$(python3 -c "import json,sys; print(json.dumps(json.loads(sys.stdin.read())[$w]))" <<< "$waves_json")
+    wt_count=$(python3 -c "import json,sys; print(len(json.loads(sys.stdin.read())))" <<< "$wave_tasks")
+    log "  wave $((w+1))/$wave_count (tasks=$wt_count)"
+
+    wave_summary="$iter_dir/wave-$(printf '%02d' "$((w+1))").json"
+    wave_req_id="${iter_req_id}-w$((w+1))"
+
+    pd_args=(
+      --tasks-json   "$wave_tasks"
+      --runner-cmd   "$RUNNER_CMD"
+      --parallelism  "$PARALLELISM"
+      --request-id   "$wave_req_id"
+      --max-retries  "$MAX_RETRIES"
+      --task-timeout "$TASK_TIMEOUT"
+      --runs-dir     "$RUNS_DIR"
+      --summary-file "$wave_summary"
+    )
+    [[ -n "$FALLBACK_RUNNER_CMD" ]] && pd_args+=(--fallback-runner-cmd "$FALLBACK_RUNNER_CMD")
+    [[ "$ISOLATE_WORKSPACE" -eq 1 ]] && pd_args+=(--isolate-workspace)
+    [[ "$NO_VALIDATE"       -eq 1 ]] && pd_args+=(--no-validate)
+    [[ "$QUIET"             -eq 1 ]] && pd_args+=(--quiet)
+
+    if ! bash "$PARALLEL_SCRIPT" "${pd_args[@]}"; then
+      log "  [warn] wave $((w+1)) had failures — continuing"
+    fi
+
+    # Copy valid envelopes into shared envelopes_dir for later reduce.
+    python3 - "$wave_summary" "$envelopes_dir" <<'PYEOF'
+import json, sys, os, shutil
+summary = json.load(open(sys.argv[1]))
+dest_dir = sys.argv[2]
+for t in summary.get("tasks", []):
+    ep = t.get("envelope")
+    if ep and os.path.isfile(ep):
+        shutil.copy2(ep, os.path.join(dest_dir, os.path.basename(ep)))
+PYEOF
+  done
+
+  # Reduce all collected envelopes.
   reduced_file="$iter_dir/reduced.json"
-  reduce_req_id="${REQUEST_ID}-${iter_label}-reduce"
+  reduce_req_id="${iter_req_id}-reduce"
 
   if ! bash "$REDUCE_SCRIPT" \
-      --summary-file  "$summary_file" \
+      --envelopes-dir "$envelopes_dir" \
       --runner-cmd    "$REDUCE_RUNNER_CMD" \
       --request-id    "$reduce_req_id" \
       --runs-dir      "$RUNS_DIR" \
       --output-file   "$reduced_file"; then
     log "  [warn] reduce-envelopes failed — creating fallback envelope"
-    python3 - "$summary_file" "$reduce_req_id" <<'PYEOF' > "$reduced_file"
-import json, sys, os
+    python3 - "$envelopes_dir" "$reduce_req_id" <<'PYEOF' > "$reduced_file"
+import json, sys, os, glob
 
-summary = json.load(open(sys.argv[1]))
-tasks = summary.get("tasks", [])
+env_dir = sys.argv[1]
 findings = []
-for t in tasks:
-    ep = t.get("envelope")
-    if ep and os.path.isfile(ep):
-        try:
-            env = json.load(open(ep))
-            task_findings = env.get("outputs", {}).get("findings", [])
-            findings.extend(task_findings)
-        except Exception:
-            pass
+for ep in glob.glob(os.path.join(env_dir, "*.json")):
+    try:
+        env = json.load(open(ep))
+        findings.extend(env.get("outputs", {}).get("findings", []))
+    except Exception:
+        pass
 
 fallback = {
     "schema_version": "1.0",
@@ -201,7 +266,7 @@ fallback = {
     "status": "partial",
     "confidence": 0.5,
     "outputs": {
-        "summary": f"{summary.get('pass', 0)} of {summary.get('total', 0)} tasks passed; reducer failed",
+        "summary": "reducer failed; fallback envelope with collected findings",
         "findings": findings[:20],
         "artifacts": [],
         "next_actions": []
@@ -216,31 +281,25 @@ PYEOF
   final_envelope="$reduced_file"
   log "  reduced envelope: $reduced_file"
 
-  # Extract next_actions from reduced envelope.
+  # Extract next_actions and topological-sort into waves for the next iteration.
   next_tasks_json=$(python3 - "$reduced_file" <<'PYEOF'
 import json, sys
 
 reduced = json.load(open(sys.argv[1]))
 next_actions = reduced.get("outputs", {}).get("next_actions", [])
-
 tasks = []
 for i, a in enumerate(next_actions):
-    role  = a.get("role", "oracle")
-    skill = a.get("skill", "brainstorming")
-    prompt = a.get("prompt", "")
-    task_id = f"loop-{role}-{i+1}"
-    tasks.append({"role": role, "skill": skill, "prompt": prompt, "task_id": task_id})
-
+    tid = f"loop-{a.get('role','oracle')}-{i+1}"
+    tasks.append({
+        "role":      a.get("role", "oracle"),
+        "skill":     a.get("skill", "brainstorming"),
+        "prompt":    a.get("prompt", ""),
+        "task_id":   tid,
+        "depends_on": a.get("depends_on", []),
+    })
 print(json.dumps(tasks))
 PYEOF
 )
-
-  # Convergence check: same next_actions as previous iteration → loop detected.
-  if [[ -n "$prev_next_tasks_json" && "$next_tasks_json" == "$prev_next_tasks_json" ]]; then
-    log "  next_actions unchanged — converged after $iteration iteration(s)"
-    break
-  fi
-  prev_next_tasks_json="$next_tasks_json"
 
   next_count=$(python3 -c "import json,sys; print(len(json.loads(sys.stdin.read())))" <<< "$next_tasks_json")
 
@@ -249,12 +308,20 @@ PYEOF
     break
   fi
 
+  # Oscillation detection: fingerprint next_tasks and check against seen set.
+  fp=$(fingerprint_tasks <<< "$next_tasks_json")
+  if [[ -n "${seen_fingerprints[$fp]+set}" ]]; then
+    log "  oscillation detected (fingerprint $fp seen at iter ${seen_fingerprints[$fp]}) — stopping"
+    break
+  fi
+  seen_fingerprints[$fp]=$iteration
+
   if (( iteration >= MAX_ITERATIONS )); then
     log "  reached max_iterations=$MAX_ITERATIONS — stopping"
     break
   fi
 
-  log "  $next_count next_action(s) queued for next iteration"
+  log "  $next_count next_action(s) in $wave_count wave(s) queued for next iteration"
   CURRENT_TASKS_JSON="$next_tasks_json"
 done
 
