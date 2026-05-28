@@ -4,3 +4,11 @@ moltbot-lite/
 
 .agent
 .gemini
+.serena/
+
+# MCP / 本地代理執行時產出的資料庫
+*.db
+*.db-shm
+*.db-wal
+mcp-memory-libsql.db
+.tao/
