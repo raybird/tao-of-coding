@@ -20,7 +20,7 @@ Execution options:
   --max-retries <n>           Per-task retries (default: 1)
   --isolate-workspace         Isolate each agent in a git worktree
   --no-validate               Skip envelope validation
-  --task-timeout <s>          Per-task timeout in seconds (default: 180)
+  --task-timeout <s>          Per-task timeout in seconds (default: 300)
   --runs-dir <path>           Base dir for run artifacts (default: .tao/runs)
   --summary-dir <path>        Directory to write per-iteration summaries (default: /tmp/loop-<id>)
   --request-id <id>           Trace id (default: generated)
@@ -42,6 +42,19 @@ log()  { [[ "$QUIET" -eq 0 ]] && printf '%s\n' "$*" >&2 || true; }
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PARALLEL_SCRIPT="$SCRIPT_DIR/parallel-dispatch.sh"
 REDUCE_SCRIPT="$SCRIPT_DIR/reduce-envelopes.sh"
+
+SELF_NAME="$(basename "${BASH_SOURCE[0]}")"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+version() {
+  local ver
+  if command -v git >/dev/null 2>&1; then
+    ver="$(git -C "$REPO_ROOT" describe --tags --always --dirty 2>/dev/null || echo 'unknown')"
+  else
+    ver="unknown"
+  fi
+  echo "$SELF_NAME version $ver"
+  exit 0
+}
 [[ -x "$PARALLEL_SCRIPT" ]] || fail "E_MISSING" "parallel-dispatch.sh not found or not executable"
 [[ -x "$REDUCE_SCRIPT"   ]] || fail "E_MISSING" "reduce-envelopes.sh not found or not executable"
 
@@ -55,7 +68,7 @@ FALLBACK_RUNNER_CMD=""
 MAX_RETRIES=1
 ISOLATE_WORKSPACE=0
 NO_VALIDATE=0
-TASK_TIMEOUT=180
+TASK_TIMEOUT=300
 RUNS_DIR=".tao/runs"
 SUMMARY_DIR=""
 REQUEST_ID="loop-$(date +%Y%m%d-%H%M%S)-$$"
@@ -79,6 +92,7 @@ while (($#)); do
     --request-id)          REQUEST_ID="${2:-}";          shift 2 ;;
     --quiet)               QUIET=1;                      shift ;;
     -h|--help)             usage; exit 0 ;;
+    --version)             version ;;
     *) fail "E_BAD_ARG" "unknown argument: $1" ;;
   esac
 done
@@ -117,6 +131,7 @@ log "=== loop-dispatch $REQUEST_ID (max_iterations=$MAX_ITERATIONS) ==="
 
 iteration=0
 final_envelope=""
+prev_next_tasks_json=""
 
 while (( iteration < MAX_ITERATIONS )); do
   iteration=$(( iteration + 1 ))
@@ -160,9 +175,41 @@ while (( iteration < MAX_ITERATIONS )); do
       --runner-cmd    "$REDUCE_RUNNER_CMD" \
       --request-id    "$reduce_req_id" \
       --runs-dir      "$RUNS_DIR" \
-      --output-file   "$reduced_file" \
-      > /dev/null 2>&1; then
-    log "  [warn] reduce-envelopes failed — aborting loop"
+      --output-file   "$reduced_file"; then
+    log "  [warn] reduce-envelopes failed — creating fallback envelope"
+    python3 - "$summary_file" "$reduce_req_id" <<'PYEOF' > "$reduced_file"
+import json, sys, os
+
+summary = json.load(open(sys.argv[1]))
+tasks = summary.get("tasks", [])
+findings = []
+for t in tasks:
+    ep = t.get("envelope")
+    if ep and os.path.isfile(ep):
+        try:
+            env = json.load(open(ep))
+            task_findings = env.get("outputs", {}).get("findings", [])
+            findings.extend(task_findings)
+        except Exception:
+            pass
+
+fallback = {
+    "schema_version": "1.0",
+    "task_id": sys.argv[2],
+    "role": "oracle",
+    "skill": "writing-plans",
+    "status": "partial",
+    "confidence": 0.5,
+    "outputs": {
+        "summary": f"{summary.get('pass', 0)} of {summary.get('total', 0)} tasks passed; reducer failed",
+        "findings": findings[:20],
+        "artifacts": [],
+        "next_actions": []
+    }
+}
+json.dump(fallback, sys.stdout, indent=2, ensure_ascii=False)
+PYEOF
+    final_envelope="$reduced_file"
     break
   fi
 
@@ -187,6 +234,13 @@ for i, a in enumerate(next_actions):
 print(json.dumps(tasks))
 PYEOF
 )
+
+  # Convergence check: same next_actions as previous iteration → loop detected.
+  if [[ -n "$prev_next_tasks_json" && "$next_tasks_json" == "$prev_next_tasks_json" ]]; then
+    log "  next_actions unchanged — converged after $iteration iteration(s)"
+    break
+  fi
+  prev_next_tasks_json="$next_tasks_json"
 
   next_count=$(python3 -c "import json,sys; print(len(json.loads(sys.stdin.read())))" <<< "$next_tasks_json")
 

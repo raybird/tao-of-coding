@@ -52,7 +52,7 @@
             "additionalProperties": false,
             "properties": {
               "path": { "type": "string" },
-              "kind": { "enum": ["report", "plan", "code", "test", "doc", "spec", "diff", "log", "other"] },
+              "kind": { "enum": ["report", "plan", "code", "test", "doc", "documentation", "spec", "diff", "log", "other"] },
               "description": { "type": "string" }
             }
           }
