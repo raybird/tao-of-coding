@@ -107,15 +107,22 @@ dispatch(request):
 
 ## 8) 參考實作
 
-- 入口腳本：`skills/tao-of-opencode/scripts/skill-dispatch.sh`
-- 建議所有自動 skill 觸發都經過此入口，避免子流程直接呼叫模型 CLI。
-- 對話自動路由：`skills/tao-of-opencode/scripts/orchestrate-skill.sh`
-- 路由規則檔：`skills/tao-of-opencode/references/skill-routing.conf`
+腳本層級（由簡至複）：
 
-`orchestrate-skill.sh` 會先依對話內容選擇 role+skill，再轉呼叫 `skill-dispatch.sh`。
-調整自動觸發行為時，優先修改 `skill-routing.conf`，可避免直接改腳本邏輯。
+| 腳本 | 職掌 |
+| :--- | :--- |
+| `skill-dispatch.sh` | 單一 agent 委派；組裝 prompt、重試、workspace 隔離 |
+| `orchestrate-skill.sh` | 依 prompt 內容自動路由 role+skill，再呼叫 skill-dispatch |
+| `parallel-dispatch.sh` | 多 agent 並行 fan-out，輸出 summary JSON |
+| `reduce-envelopes.sh` | 讀取多個 envelope，呼叫 Oracle 合流為單一行動清單 |
+| `loop-dispatch.sh` | 串接 parallel + reduce 成迴圈，支援 depends_on wave 排序與 fingerprint 擺盪偵測 |
+| `validate-agent-message.sh` | 驗證 envelope 是否符合 Agent Message v1.0 schema |
+| `run-gc.sh` | 清理 `.tao/runs/` 過期執行記錄與 git worktree |
 
-範例：
+建議所有自動 skill 觸發都經過 `skill-dispatch.sh`，避免子流程直接呼叫模型 CLI。
+調整自動路由行為時，優先修改 `references/skill-routing.conf`，可避免直接改腳本邏輯。
+
+單一 agent 範例：
 
 ```bash
 skills/tao-of-opencode/scripts/skill-dispatch.sh \
@@ -127,5 +134,15 @@ skills/tao-of-opencode/scripts/skill-dispatch.sh \
   --edge-type requires_now \
   --visited-skills writing-plans,executing-plans \
   --prompt "請依技能流程追查根因，先不要提出修復" \
-  --runner-cmd 'opencode run --model "nvidia/deepseek-ai/deepseek-v4-pro" "$(cat)"'
+  --runner-cmd 'opencode run --model "nvidia/deepseek-ai/deepseek-v4-pro"'
+```
+
+多 agent 迴圈範例：
+
+```bash
+skills/tao-of-opencode/scripts/loop-dispatch.sh \
+  --tasks-file tasks.json \
+  --runner-cmd "opencode run --model opencode/deepseek-v4-flash-free" \
+  --reduce-runner-cmd "opencode run --model nvidia/openai/gpt-oss-120b" \
+  --max-iterations 3 --parallelism 3 --isolate-workspace
 ```

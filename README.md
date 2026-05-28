@@ -129,7 +129,11 @@ bash skills/tao-of-opencode/scripts/loop-dispatch.sh \
   --summary-dir /tmp/my-loop-run
 ```
 
-每輪在 `<summary-dir>/iter-NN/` 下產生 `summary.json` 與 `reduced.json`；最終 reduced envelope 輸出到 stdout。
+每輪在 `<summary-dir>/iter-NN/` 下產生 `wave-NN.json`（各 wave 的 parallel summary）與 `reduced.json`；最終 reduced envelope 輸出到 stdout。
+
+**收斂機制：**
+- `next_actions` 中的 `depends_on` 欄位會被解析為拓撲依賴，自動切成有序 waves — 同一 wave 並行，不同 wave 依序執行
+- 每輪對 next_actions 計算 fingerprint（SHA256 of sorted role/skill/prompt），相同 fingerprint 再次出現即判定擺盪並提前終止
 
 ### Envelope 驗證
 
@@ -303,28 +307,37 @@ ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-opencode ~/.codeium/wi
 .
 ├── README.md
 ├── docs/
-│   ├── semver_decision_tree.md
-│   ├── release_note_template.md
-│   ├── superpowers_playbook.md
 │   ├── skill_dispatcher_contract.md
 │   ├── skill_routing_format.md
-│   ├── superpowers_skills_analysis.md
+│   ├── superpowers_playbook.md
+│   ├── semver_decision_tree.md
+│   ├── release_note_template.md
 │   ├── celestial_skill_mapping.md
 │   └── project-spirit-analysis.md
 └── skills/
     └── tao-of-opencode/
         ├── SKILL.md
         ├── scripts/
-        │   ├── sync-superpowers.sh
-        │   ├── skill-dispatch.sh
-        │   └── orchestrate-skill.sh
+        │   ├── orchestrate-skill.sh      # 自動路由 + 委派（推薦入口）
+        │   ├── skill-dispatch.sh         # 手動指定角色 + 技能委派
+        │   ├── parallel-dispatch.sh      # 多 Agent 並行 fan-out
+        │   ├── reduce-envelopes.sh       # 多 Agent 結果合流（Oracle）
+        │   ├── loop-dispatch.sh          # 自動迴圈（parallel + reduce + 收斂）
+        │   ├── validate-agent-message.sh # Envelope schema 驗證
+        │   ├── run-gc.sh                 # .tao/runs/ 執行記錄清理
+        │   ├── sync-superpowers.sh       # 同步上游 Superpowers 技能
+        │   ├── assess-models.sh          # 模型能力評估
+        │   └── refresh-model-registry.sh # 模型清單同步
         └── references/
+            ├── agent-message.schema.json # Agent Message v1.0 JSON Schema
+            ├── agent-message.md          # 輸出契約說明與 few-shot 範例
+            ├── model-registry.conf       # 模型清單與梯隊定義
+            ├── skill-routing.conf        # 自動路由規則
             ├── explorer.md
             ├── oracle.md
             ├── librarian.md
             ├── fixer.md
             ├── designer.md
-            ├── skill-routing.conf
             └── superpowers/
                 ├── SOURCE.md
                 ├── brainstorming/
@@ -347,4 +360,4 @@ ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-opencode ~/.codeium/wi
 
 ---
 
-*版本更新日期：2026-05-27*
+*版本更新日期：2026-05-28*
