@@ -51,6 +51,6 @@ Start
 
 ## 4) 範例
 
-- 調整 `FORBID_ROOT_RELOAD` 的預設行為且影響舊流程 -> **MAJOR**
-- 新增 `--route-config`（舊流程可不使用）-> **MINOR**
+- 改動 orchestrator 協議或角色卡交付契約，舊用法無法沿用 -> **MAJOR**
+- 新增一個維護腳本或可選參數（舊流程可不使用）-> **MINOR**
 - 修正 README 指令 typo -> **PATCH**

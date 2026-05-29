@@ -145,15 +145,13 @@ assess-models.sh --tier ?   →   評估新模型
 
 ## 環境需求
 
-本專案以 Markdown 指令集為主，若要使用自動 orchestration 腳本，需具備基礎 CLI 環境。
-
-建議安裝以下工具：
+本專案以 Markdown 指令集為主，協議與角色調度由宿主 agent 本體執行，**不需任何 CLI 即可運作**。下列工具僅維護腳本選用：
 
 | 工具 | 用途 | 安裝確認 |
 | :--- | :--- | :--- |
-| **Bash** | 執行 `scripts/*.sh`（dispatch / orchestrate / sync）。 | `bash --version` |
+| **Bash** | 執行維護腳本（`install-orchestrator` / `sync-superpowers` / `assess-models` 等）。 | `bash --version` |
 | **Git** | 同步上游 superpowers 技能。 | `git --version` |
-| **OpenCode CLI** | `tao-of-opencode` 執行入口。 | `opencode --version` |
+| **OpenCode CLI** | 選用：僅 `assess-models.sh` 評估模型時需要。 | `opencode --version` |
 
 ---
 
