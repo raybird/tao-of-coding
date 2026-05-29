@@ -219,6 +219,22 @@ bash "$S" --target workspace/AGENTS.md --remove
 
 ---
 
+## 測試 (Tests)
+
+維護腳本有自動化測試與 CI（GitHub Actions，見 `.github/workflows/ci.yml`）：
+
+```bash
+# 安裝器行為測試（需 bats）
+bats tests/install-orchestrator.bats
+
+# Markdown 本地連結檢查（無依賴）
+bash tests/check-doc-links.sh
+```
+
+CI 三個 job：`bash -n` + `shellcheck`（lint）、`bats`（安裝器冪等/非破壞/remove）、死連結檢查（docs）。
+
+---
+
 ## 目錄結構
 
 ```text

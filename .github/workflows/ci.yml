@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    name: Shell lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: bash -n（語法檢查，全部腳本）
+        run: |
+          for s in skills/tao-of-opencode/scripts/*.sh tests/*.sh; do
+            bash -n "$s"
+          done
+      - name: shellcheck（error 級；審完既有腳本後可調至 warning）
+        run: shellcheck -S error skills/tao-of-opencode/scripts/*.sh tests/*.sh
+
+  test:
+    name: Bats tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install bats
+        run: sudo apt-get update && sudo apt-get install -y bats
+      - name: run bats
+        run: bats tests/install-orchestrator.bats
+
+  docs:
+    name: Doc link check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 本地 Markdown 連結檢查
+        run: bash tests/check-doc-links.sh
