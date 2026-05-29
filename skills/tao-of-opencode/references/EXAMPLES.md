@@ -8,7 +8,7 @@
 
 ### 一次性格式轉換
 
-用戶丟了一份 JSON，要轉成 YAML 並調整鍵名。使用 **opencode**（`opencode run`）。
+用戶丟了一份 JSON，要轉成 YAML 並調整鍵名。直接以當前 agent 或委派 Fixer 完成即可（單步任務不需召集團隊）。
 
 ### OpenCode 工作流
 

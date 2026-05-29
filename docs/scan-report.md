@@ -1,5 +1,7 @@
 # 專案掃描報告 (Project Scan Report)
 
+> **註（2026-05-29）**：本報告為 2026-05-27 的快照。其後模式 A 的 shell 編排機制（orchestrate-skill / skill-dispatch / skill-routing.conf 等）已全面移除，角色調度改由宿主原生 subagent 完成。下文涉及調度腳本與路由設定的描述已過時，最新架構見 `skills/tao-of-opencode/SKILL.md` 與 `docs/orchestrator-identity-and-portable-install.md`。
+
 - **掃描日期**: 2026-05-27
 - **執行角色**: Explorer (專案探查者)
 - **報告狀態**: 已完成

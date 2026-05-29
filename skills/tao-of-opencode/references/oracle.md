@@ -36,64 +36,18 @@ model: nvidia/openai/gpt-oss-120b
 2. 使用外部事實（價格、新聞、法規、版本、公告）時，必須附來源與查詢日期（YYYY-MM-DD）。
 3. 策略建議必須給出可驗證依據（量測方式、風險、回滾方案）。
 4. 若無法查證（網路或權限限制），必須明確說明限制與已嘗試步驟，不得假設最新資訊。
-5. **最終回覆必須是一段 JSON**，遵循 [`agent-message.md`](agent-message.md) 契約 v1.0。完整方案/計畫寫到 artifact 檔，summary 只放摘要。
+5. 交付時直接給出結論摘要；完整方案、決策矩陣、權衡分析寫到 `docs/implementation-plan.md` 或對應 artifact 檔並附路徑，不需包成 JSON envelope。
 
-## 📤 輸出契約 (Agent Message v1.0)
+## 📤 輸出 (Output)
 
-完整 schema 見 [`agent-message.schema.json`](agent-message.schema.json)。回覆只能是一段 fenced JSON block，前後不得有任何文字。
+回傳人類可讀的結論摘要；完整方案、決策矩陣、權衡分析、風險與回滾方案寫到 `docs/implementation-plan.md` 或對應 artifact 檔並附可追溯路徑。
 
-完整方案、決策矩陣、權衡分析寫到 `outputs.artifacts[].kind = "plan"` 指向的檔案，**不要塞進 JSON 字串**。
+- 至少指出一個 `medium` 以上的問題，否則代表沒找到值得 Oracle 介入的點。
+- 後續建議通常指向 Fixer（執行）或 Explorer（補充調查），不要指回自己。例如：
 
-範例（示範用合法輸出，請完全比照結構，只替換內容）：
-
-```json
-{
-  "schema_version": "1.0",
-  "task_id": "oracle-01-orderservice-refactor",
-  "role": "oracle",
-  "skill": "writing-plans",
-  "status": "ok",
-  "confidence": 0.8,
-  "outputs": {
-    "summary": "OrderService 5000 行屬 God Class。建議三階段重構：(1) 抽離 PaymentProcessor 策略；(2) Email 改事件訂閱；(3) OrderStatus 改 State Pattern。預估可降至 ~800 行，提升可測性。完整計畫見 artifact。",
-    "artifacts": [
-      {
-        "path": ".tao/runs/example/artifacts/oracle-01-plan.md",
-        "kind": "plan",
-        "description": "三階段重構計畫含步驟、風險、回滾方案、驗收條件"
-      }
-    ],
-    "findings": [
-      {
-        "id": "f-001",
-        "severity": "high",
-        "message": "OrderService 違反單一職責原則，混合付款/通知/狀態三大職責",
-        "location": "src/services/OrderService.ts"
-      },
-      {
-        "id": "f-002",
-        "severity": "medium",
-        "message": "Email 通知與核心訂單流程同步耦合，失敗會回滾整筆交易",
-        "location": "src/services/OrderService.ts:1240"
-      }
-    ],
-    "next_actions": [
-      {
-        "role": "fixer",
-        "skill": "test-driven-development",
-        "prompt": "依 oracle-01-plan.md 階段 1，先為 PaymentProcessor 介面寫 failing test",
-        "depends_on": [],
-        "parallelizable": false
-      }
-    ]
-  }
-}
-```
-
-Oracle 專屬欄位約束：
-- `outputs.artifacts[].kind` 通常為 `plan` 或 `spec`；若是純分析報告則為 `report`。
-- `outputs.findings[].severity` 至少要有一個 `medium` 以上，否則代表沒找到值得 Oracle 介入的問題。
-- `outputs.next_actions[]` 通常會指向 `fixer`（執行）或 `explorer`（補充調查），不要指回自己。
+> OrderService 5000 行屬 God Class。建議三階段重構：(1) 抽離 PaymentProcessor 策略；(2) Email 改事件訂閱；(3) OrderStatus 改 State Pattern。預估可降至 ~800 行。完整計畫見 `docs/implementation-plan.md`。
+>
+> 風險（high）：違反單一職責原則，混合付款/通知/狀態（`src/services/OrderService.ts`）。建議交 Fixer 依計畫階段 1 以 TDD 先寫 failing test。
 
 ## 📜 執行指引 (System Prompt)
 

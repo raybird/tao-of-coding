@@ -41,7 +41,7 @@
 
 ## Links
 - Protocol: `skills/tao-of-opencode/SKILL.md`
-- Dispatcher Contract: `docs/skill_dispatcher_contract.md`
+- Orchestrator 安裝設計: `docs/orchestrator-identity-and-portable-install.md`
 ```
 
 ---

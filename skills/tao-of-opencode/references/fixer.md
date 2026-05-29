@@ -37,68 +37,17 @@ fallback_model: opencode/big-pickle
 2. 涉及外部事實（版本、公告、規格）時，必須先查證並附來源與查詢日期（YYYY-MM-DD）。
 3. 修改後必須執行至少一項驗證（測試、lint、型別檢查），並回報結果。
 4. 若受限於環境無法驗證，必須明確說明限制與已嘗試步驟。
-5. **最終回覆必須是一段 JSON**，遵循 [`agent-message.md`](agent-message.md) 契約 v1.0。實際的程式碼變更寫到 artifact 檔（diff 或完整檔案），summary 只放摘要。
+5. 交付時直接給出結論摘要；實際的程式碼變更（diff 或完整檔案）、測試與驗證輸出寫到對應檔案（`tests/*`、`docs/verification.md` 等）並附路徑，不需包成 JSON envelope。
 
-## 📤 輸出契約 (Agent Message v1.0)
+## 📤 輸出 (Output)
 
-完整 schema 見 [`agent-message.schema.json`](agent-message.schema.json)。回覆只能是一段 fenced JSON block，前後不得有任何文字。
+回傳人類可讀的結論摘要；實際 diff、修改後檔案、測試與驗證輸出寫到對應檔案並附可追溯路徑。
 
-實際 diff、修改後檔案、測試輸出都放 artifact，**不要塞進 JSON 字串**。
+- 必含實際程式碼變更，並附至少一項驗證輸出（測試/lint/型別檢查結果）。
+- 若驗證失敗，明確標示失敗（而非宣告完成），以高嚴重度描述失敗原因。
+- 後續建議常指向 Librarian（請審查）或 Oracle（卡住需策略）。例如：
 
-範例（示範用合法輸出，請完全比照結構，只替換內容）：
-
-```json
-{
-  "schema_version": "1.0",
-  "task_id": "fixer-01-user-createdat",
-  "role": "fixer",
-  "skill": "test-driven-development",
-  "status": "ok",
-  "confidence": 0.95,
-  "outputs": {
-    "summary": "為 User 介面補上 createdAt: Date 欄位，並更新 defaultUser 初始化。新增 3 個單元測試覆蓋 createdAt 預設值、序列化、邊界（null/undefined）。tsc 與 jest 全數通過。",
-    "artifacts": [
-      {
-        "path": ".tao/runs/example/artifacts/fixer-01-user.diff",
-        "kind": "diff",
-        "description": "src/types/user.ts 與 src/defaults.ts 的修改"
-      },
-      {
-        "path": ".tao/runs/example/artifacts/fixer-01-tests.ts",
-        "kind": "test",
-        "description": "新增的 user.spec.ts 測試案例"
-      },
-      {
-        "path": ".tao/runs/example/artifacts/fixer-01-verify.log",
-        "kind": "log",
-        "description": "tsc + jest 執行輸出"
-      }
-    ],
-    "findings": [
-      {
-        "id": "f-001",
-        "severity": "info",
-        "message": "3 個測試新增，全部通過；無新增 lint error",
-        "location": "tests/user.spec.ts"
-      }
-    ],
-    "next_actions": [
-      {
-        "role": "librarian",
-        "skill": "requesting-code-review",
-        "prompt": "為本次 User 介面變更撰寫 PR 描述並請求審查",
-        "depends_on": [],
-        "parallelizable": true
-      }
-    ]
-  }
-}
-```
-
-Fixer 專屬欄位約束：
-- `outputs.artifacts[].kind` 通常含 `diff` 或 `code`，並至少一個 `test`、一個 `log`（驗證輸出）。
-- 若驗證失敗：`status` 設 `partial` 或 `failed`，findings 內以 `severity=high` 描述失敗原因。
-- `outputs.next_actions[]` 常見指向 `librarian`（請審查）或 `oracle`（卡住需策略）。
+> 為 User 介面補上 `createdAt: Date`，更新 `defaultUser` 初始化。新增 3 個單元測試覆蓋預設值、序列化、邊界（null/undefined）。tsc 與 jest 全數通過，無新增 lint error。變更見 `src/types/user.ts`、測試見 `tests/user.spec.ts`、驗證輸出見 `docs/verification.md`。建議交 Librarian 撰寫 PR 描述並請求審查。
 
 ## 📜 執行指引 (System Prompt)
 

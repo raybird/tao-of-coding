@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 專案概覽
 
-本倉庫是「程式之道 (Tao of Coding)」，一套以 Markdown 指令集為核心的**多代理協作框架 (Multi-Agent Orchestration Framework)**，透過 OpenCode CLI 執行，將開發任務路由給適合的角色子代理。
+本倉庫是「程式之道 (Tao of Coding)」，一套以 Markdown 指令集為核心、**host-agnostic 的多代理協作框架 (Multi-Agent Orchestration Framework)**。當前 agent 讀取宿主 `AGENTS.md` 的受管區塊（或 skill）後**自己就是 orchestrator 本體**，依任務性質把工作委派給角色——優先用宿主原生 subagent/task 機制，無則 in-context 角色切換。**不再透過任何 shell 包裝或 opencode 子進程啟動。**
 
 ## 核心架構
 
@@ -28,52 +28,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```
 skills/tao-of-opencode/
-├── SKILL.md                    # 主協議（Root Skill）
+├── SKILL.md                    # 主協議（agent 即 orchestrator）
 ├── references/
 │   ├── *.md                    # 各角色指南（explorer, oracle, librarian, fixer, designer）
-│   ├── skill-routing.conf      # 自動路由規則（INI 格式，bash ERE pattern）
+│   ├── model-registry.conf     # 模型清單
 │   └── superpowers/            # 本地化 Superpowers 技能集
-└── scripts/
-    ├── orchestrate-skill.sh    # 自動路由 + 委派（推薦入口）
-    ├── skill-dispatch.sh       # 手動指定角色 + 技能委派
-    └── sync-superpowers.sh     # 同步上游 superpowers 技能
+└── scripts/                    # 純維護工具（非角色調度）
+    ├── install-orchestrator.sh # 模式 B 安裝：受管區塊寫進宿主 AGENTS.md
+    ├── sync-superpowers.sh     # 同步上游 superpowers 技能
+    ├── assess-models.sh        # 模型能力評估
+    └── refresh-model-registry.sh
 ```
 
-### Skill 路由機制
+### 調度機制
 
-`skill-routing.conf` 定義 pattern → role/skill 的路由規則。`orchestrate-skill.sh` 讀取此設定檔，依 prompt 內容自動選擇角色與技能，再呼叫 `skill-dispatch.sh` 組裝完整 prompt（Runtime Header + 角色指南 + 技能文件），最終透過 `--runner-cmd` 送入 OpenCode。
+路由意圖以 `SKILL.md` 的「技能路由表」（markdown）呈現，由 agent 本體閱讀後判斷。委派方式 host-agnostic：**優先用宿主原生 subagent/task**（如 Claude Code 的 Task）取得隔離與無狀態；宿主無此能力時於同一對話內 **in-context 角色切換**。委派前載入對應角色卡與所需技能。詳見 `SKILL.md` 的〈調度方式 (Delegation)〉。
 
-防遞迴機制靠 `visited_skills`、`max_depth`、`edge_type` 三層守衛，所有子 Skill 在 Delegated 模式下執行，不得重載 root `SKILL.md`。詳見 `docs/skill_dispatcher_contract.md`。
+> 早期的 shell 編排機制（orchestrate-skill / skill-dispatch / parallel-dispatch / loop-dispatch、Agent Message envelope、dispatcher 契約）已於 2026-05-29 全面移除。背景見 `docs/orchestrator-identity-and-portable-install.md`。
 
 ## 常用指令
 
-### 自動路由執行（推薦）
-```bash
-bash skills/tao-of-opencode/scripts/orchestrate-skill.sh \
-  --prompt "你的任務描述" \
-  --runner-cmd "opencode run --model nvidia/deepseek-ai/deepseek-v4-pro"
-
-# 預覽路由結果（不實際執行）
-bash skills/tao-of-opencode/scripts/orchestrate-skill.sh \
-  --prompt "這個測試一直失敗" --dry-run
-```
-
-### 手動指定角色與技能委派
-```bash
-bash skills/tao-of-opencode/scripts/skill-dispatch.sh \
-  --role fixer --skill systematic-debugging \
-  --execution-mode delegated --depth 1 \
-  --parent-skill executing-plans --edge-type requires_now \
-  --visited-skills writing-plans,executing-plans \
-  --prompt "請追查根因，暫不提修補方案" \
-  --runner-cmd "opencode run --model nvidia/deepseek-ai/deepseek-v4-pro"
-
-# 輸出組裝好的 prompt 到檔案而不執行
-bash skills/tao-of-opencode/scripts/skill-dispatch.sh \
-  --role explorer --skill executing-plans \
-  --prompt "按計畫執行重構" \
-  --output-file /tmp/composed-prompt.md
-```
+> 角色調度沒有 CLI 入口——你（agent 本體）直接依 `SKILL.md` 的〈調度方式〉以宿主原生 subagent 或 in-context 委派。以下僅為維護用腳本。
 
 ### 模型能力評估
 ```bash
@@ -107,13 +82,27 @@ npx skill-linker
 ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-opencode ~/.gemini/antigravity/skills/tao-of-opencode
 ```
 
+### 確立 orchestrator 根身份（模式 B — Persistent）
+角色身份靠 skill 連結即可；orchestrator 根身份若要常駐，用 `install-orchestrator.sh` 把受管區塊冪等寫進宿主 `AGENTS.md`（仿 GitNexus，非破壞、可重跑）。設計見 `docs/orchestrator-identity-and-portable-install.md`。
+```bash
+# 預覽（不寫檔）
+bash skills/tao-of-opencode/scripts/install-orchestrator.sh --dry-run
+
+# 寫入宿主實際讀的 AGENTS.md（預設 ./AGENTS.md，可 --target 覆寫）
+bash skills/tao-of-opencode/scripts/install-orchestrator.sh --target workspace/AGENTS.md
+
+# 卸載（移除區塊，標記外手寫內容保留）
+bash skills/tao-of-opencode/scripts/install-orchestrator.sh --target workspace/AGENTS.md --remove
+```
+受管區塊以 `<!-- tao:start -->` / `<!-- tao:end -->` 包夾，只放名冊摘要與調度準則；全文角色卡永遠留在 `skills/`。
+
 ## 修改路由規則
 
-調整自動觸發行為，優先修改 `skills/tao-of-opencode/references/skill-routing.conf`，避免直接改腳本邏輯。格式為 INI，`pattern` 使用 bash ERE 正則（不區分大小寫），同一 `[route.*]` 下可定義多個 pattern，任一匹配即觸發。
+調整角色/技能路由，修改 `SKILL.md` 的「技能路由表」（markdown 表格）與「路由準則」。agent 本體閱讀此表後判斷該找誰、用什麼技能。
 
 ## 重要規範
 
-- `SKILL.md` 只允許在最外層 Root 模式載入一次；子 Skill 以 Delegated 模式執行，禁止重載。
+- 角色調度走宿主原生 subagent 或 in-context，不再經由任何 shell 包裝。
 - 任何角色輸出若未附可追溯路徑（`docs/...`、`src/...`、`tests/...`），視為未完成。
 - 多步驟任務需先回報「路由角色 + 將使用的技能/工具」再執行。
 - 涉及外部事實時，需附來源與查詢日期（YYYY-MM-DD）。

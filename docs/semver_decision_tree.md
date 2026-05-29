@@ -30,9 +30,9 @@ Start
 ## 2) 專案對照表
 
 - **MAJOR**
-  - 改動 runtime contract，舊 orchestrator 無法直接沿用
-  - 修改 `skill-dispatch.sh` 的不相容參數語意
-  - 改動路由/技能結構導致舊配置無法解析
+  - 改動 orchestrator 協議或調度方式，舊用法無法直接沿用
+  - 改動角色卡的交付契約（輸入/輸出/驗收）造成不相容
+  - 改動 `SKILL.md` 的路由/技能結構導致舊配置無法解析
 
 - **MINOR**
   - 新增可選能力（例如新路由規則、可選參數）

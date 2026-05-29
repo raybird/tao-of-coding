@@ -1,19 +1,19 @@
 ---
 name: tao-of-opencode
-description: 以 OpenCode CLI 為執行入口的多角色協作開發協議。指導主代理如何回應使用者請求，並將任務分解為 Explorer、Oracle、Librarian、Fixer、Designer 等職能進行任務委派。
-compatibility: 需系統已安裝 `opencode` (CLI) 且能執行。另需 `bash`（腳本執行）及 `git`（sync-superpowers 同步用）。
+description: host-agnostic 的多角色協作開發協議。指導當前 agent 以 orchestrator 身分回應使用者請求，並把任務分解為 Explorer、Oracle、Librarian、Fixer、Designer 等職能，透過宿主原生的 subagent/task 機制委派執行。
+compatibility: 不綁定任一宿主。可選工具：`bash` 與 `git`（僅維護腳本 sync-superpowers / install-orchestrator 等需要）。
 metadata:
   author: sub-agents
-  version: "4.0.0"
+  version: "5.0.0"
 ---
 
 # 程式之道 (Tao of Coding)
 
 ## 核心精神：有序協作
 
-在軟體開發中，你是 **主代理 (Orchestrator)**。你的職責是理解使用者請求、維持專案秩序，並調度合適的子代理（Sub-agents）完成任務。
+在軟體開發中，**你就是 orchestrator（主代理）本體**——不是被某層 shell 包裝呼叫出來的子進程，而是當前正在運作的這個 agent。你的職責是理解使用者請求、維持專案秩序，並調度合適的角色完成任務。
 
-本協議定義如何回應請求與進行任務委派。
+本協議定義如何回應請求與進行任務委派。調度方式見下方〈調度方式 (Delegation)〉。
 
 ## 角色職能表 (The Role Catalog)
 
@@ -27,9 +27,9 @@ metadata:
 | **Fixer** | Fixer | [fixer.md](references/fixer.md) | **實作專家**。實作與修復的能手。負責單元測試、語法修正。 |
 | **Designer** | Designer | [designer.md](references/designer.md) | **設計專家**。負責 UI/UX 與前端體驗。 |
 
-## OpenCode 免費模型建議（角色預設 - NVIDIA NIM 終極版）
+## 建議模型（供宿主選擇角色 subagent 模型時參考）
 
-以下對應基於 NVIDIA NIM 提供之免費模型清單：
+若宿主能為各角色子代理指定模型，以下為建議；無法指定時可忽略本段。對應基於 NVIDIA NIM 提供之免費模型清單：
 
 - `nvidia/deepseek-ai/deepseek-v4-pro`
 - `nvidia/qwen/qwen3-next-80b-a3b-instruct`
@@ -55,7 +55,7 @@ metadata:
 ## 技能路由表 (Skill Routing)
 
 以下為已本地化的 Superpowers 核心技能路由（目錄：`skills/tao-of-opencode/references/superpowers/`）。
-執行時建議同時引用「角色指南 + 技能文件」，避免只套流程而失去角色分工語境。
+委派時建議同時引用「角色指南 + 技能文件」，避免只套流程而失去角色分工語境。
 Superpowers 的來源版本與導入時間，統一以 `skills/tao-of-opencode/references/superpowers/SOURCE.md` 為準。
 
 | 任務類型 | 主責角色 | 角色指南路徑 | 協作角色 | 優先技能 | 技能路徑 |
@@ -86,18 +86,18 @@ Superpowers 的來源版本與導入時間，統一以 `skills/tao-of-opencode/r
 | Explorer | `executing-plans` | `systematic-debugging` |
 | Designer | - | `brainstorming` |
 
-## Agent Message Contract (v1.0)
+## 調度方式 (Delegation)
 
-所有 agent 呼叫的最終回覆**必須**是一段符合 [`references/agent-message.schema.json`](references/agent-message.schema.json) 的 JSON envelope（contract 說明見 [`references/agent-message.md`](references/agent-message.md)）。長內容寫到 `outputs.artifacts` 指向的檔案，不要塞進 JSON 字串。
+你（orchestrator）就是當前正在運作的 agent 本體。依任務性質把工作交給角色，委派方式 **host-agnostic**，依宿主能力擇優：
 
-驗證：
-```bash
-bash skills/tao-of-opencode/scripts/validate-agent-message.sh <message.json>
-# 或從 agent 完整輸出中抽出 ```json block 再驗證
-bash skills/tao-of-opencode/scripts/validate-agent-message.sh --extract <agent-output.txt>
-```
+1. **優先：宿主原生 subagent / task。** 若宿主提供子代理機制（如 Claude Code 的 Task、opencode 的 agent），為角色開一個子代理，交付「該角色指南 + 任務 + 必要上下文」，藉此取得隔離與無狀態。
+2. **次選：in-context 角色切換。** 若宿主無子代理機制，於同一對話內讀取對應角色卡、以該角色視角完成該段工作，再切回 orchestrator 視角整合。
 
-目前已套用樣板：`explorer.md`、`oracle.md`、`fixer.md`、`librarian.md`、`designer.md`。
+共通規則：
+- 委派前載入對應角色卡 `references/<role>.md` 與所需技能 `references/superpowers/<skill>/SKILL.md`。
+- 多步驟任務先回報「路由角色 + 將使用的技能」再動手。
+- 簡單、單步任務直接回答，不召集團隊。
+- **不再透過任何 shell 包裝或 opencode 子進程啟動**；角色委派一律走宿主原生機制或 in-context。
 
 ## 協作交付欄位定義 (Delivery Contract)
 
@@ -126,241 +126,23 @@ bash skills/tao-of-opencode/scripts/validate-agent-message.sh --extract <agent-o
 
 1. 只要問題涉及「最新/今日/近期/可能變動」資訊，必須先調用工具查證（CLI、API、web search 皆可），再回覆結論。
 2. 只要使用外部事實（價格、新聞、法規、版本、公告），回覆中必須附來源，並標註查詢日期（YYYY-MM-DD）。
-3. 優先使用本地可用工具完成查證；若需呼叫 `opencode` CLI，需明確說明目的（例如：摘要長文、角色化分析、產生對比方案）。
+3. 優先使用本地可用工具完成查證；若需委派角色子代理協助查證，需明確說明目的（例如：摘要長文、角色化分析、產生對比方案）。
 4. 若因環境限制無法查證（例如無網路/權限不足），必須明確告知限制、已嘗試步驟、以及下一步建議，不得假設最新資訊。
 5. 任務涉及多步驟執行時，需先回報「路由角色 + 將使用的技能/工具」，再執行。
 
-## Delegated 執行契約（避免 root 重載與遞迴）
+## 維護工具 (Maintenance Scripts)
 
-為避免 Skill 自動觸發時重複從頭帶入本檔案，採以下強制規則：
+`scripts/` 目錄僅保留與「角色調度」無關的維護工具，皆可 `--help`：
 
-1. `skills/tao-of-opencode/SKILL.md` 只允許在最外層 Root 模式載入一次。
-2. 子 Skill 一律以 Delegated 模式執行，只載入「角色指南 + 當前 Skill」。
-3. Delegated 模式禁止重載 root（`FORBID_ROOT_RELOAD=true`）。
-4. 觸發前必做防遞迴檢查：`visited_skills`、`max_depth`、`edge_type`。
-5. 未標註 `requires_now` 的 skill 參照，預設為 `reference_only`，不得自動執行。
+- `install-orchestrator.sh` — 模式 B 安裝：把 orchestrator 受管區塊冪等寫進宿主 `AGENTS.md`（見 `docs/orchestrator-identity-and-portable-install.md`）。
+- `sync-superpowers.sh` — 從上游 `obra/superpowers` 同步技能到 `references/superpowers/`。
+- `assess-models.sh` / `refresh-model-registry.sh` — 模型能力評估與 `references/model-registry.conf` 維護。
 
-上述契約由 `scripts/skill-dispatch.sh` 實作（即 dispatcher 實體）。
-該腳本會自動組裝 Runtime Header 並注入下列欄位：
-
-```yaml
-EXECUTION_MODE: delegated
-ROLE_LOCK: fixer
-SKILL_LOCK: systematic-debugging
-ROOT_PROTOCOL: inherited
-FORBID_ROOT_RELOAD: true
-```
-
-完整欄位與狀態轉移規範見：[`docs/skill_dispatcher_contract.md`](docs/skill_dispatcher_contract.md)。
-
-## 自動化工具 (Automation Scripts)
-
-`scripts/` 目錄提供 shell 腳本，用於自動化任務路由、委派、並行執行與維護。
-所有腳本皆可透過 `--help` 查看完整參數說明。
-
-**命名慣例**：腳本檔名統一使用 `kebab-case`（如 `skill-dispatch.sh`）；腳本內部變數使用 `UPPER_SNAKE_CASE`，函式名使用 `lower_snake_case`。這是 bash 社群慣例，非混用問題。
-
-### orchestrate-skill.sh — 自動路由 + 委派
-
-根據 prompt 內容自動匹配路由設定檔中的 pattern，決定最佳角色與技能組合，再呼叫 `skill-dispatch.sh` 完成委派。
-
-```bash
-# 查看路由結果（不實際執行）
-bash scripts/orchestrate-skill.sh --prompt "請掃描目錄結構" --dry-run
-
-# 自動路由並透過 opencode 執行
-bash scripts/orchestrate-skill.sh \
-  --prompt "這個函數有 bug，請除錯" \
-  --runner-cmd "opencode run --model nvidia/deepseek-ai/deepseek-v4-pro"
-```
-
-### skill-dispatch.sh — 手動指定角色 + 技能委派
-
-跳過自動路由，直接指定角色與技能，組裝完整 prompt（含 Runtime Header、角色指南、技能文件），並透過 `--runner-cmd` 傳給任意 CLI，或以 `--output-file` 輸出到檔案。支援 `--max-retries`、`--fallback-runner-cmd`、`--isolate-workspace`。
-
-```bash
-# 產生組裝好的 prompt 到檔案
-bash scripts/skill-dispatch.sh \
-  --role explorer --skill executing-plans \
-  --prompt "按計畫執行重構任務" \
-  --output-file /tmp/composed-prompt.md
-
-# 直接 pipe 給 opencode 執行，含重試與 workspace 隔離
-bash scripts/skill-dispatch.sh \
-  --role fixer --skill systematic-debugging \
-  --prompt "找出此函數的根因" \
-  --max-retries 2 --isolate-workspace \
-  --runner-cmd "opencode run --model nvidia/deepseek-ai/deepseek-v4-pro"
-```
-
-### parallel-dispatch.sh — 多 Agent 並行執行
-
-同時觸發多個 agent（各自呼叫 `skill-dispatch.sh`），限制最大並發數，結束後輸出 summary JSON。
-
-```bash
-bash scripts/parallel-dispatch.sh \
-  --tasks-file tasks.json \
-  --parallelism 3 \
-  --runner-cmd "opencode run --model opencode/deepseek-v4-flash-free" \
-  --isolate-workspace \
-  --summary-file /tmp/summary.json
-```
-
-tasks.json 格式：`[{"role":"explorer","skill":"executing-plans","prompt":"..."}]`
-
-### reduce-envelopes.sh — 多 Agent 結果合流
-
-讀取 `parallel-dispatch.sh` 產生的 summary（或指定 envelope 目錄），呼叫 Oracle/brainstorming 合併所有 findings 並產出行動清單。
-
-```bash
-bash scripts/reduce-envelopes.sh \
-  --summary-file /tmp/summary.json \
-  --runner-cmd "opencode run --model nvidia/openai/gpt-oss-120b"
-```
-
-### validate-agent-message.sh — Envelope 結構驗證
-
-驗證 agent 輸出是否符合 Agent Message v1.0 schema。
-
-```bash
-bash scripts/validate-agent-message.sh <message.json>
-# 從 agent 完整輸出中抽取 ```json block 再驗證
-bash scripts/validate-agent-message.sh --extract <agent-output.txt>
-```
-
-### loop-dispatch.sh — 自動迴圈執行
-
-串接 `parallel-dispatch.sh` + `reduce-envelopes.sh`，讀取每輪 reducer 的 `next_actions` 自動組成下一輪任務，直到收斂（`next_actions` 為空）或達到 `--max-iterations`。
-
-```bash
-bash scripts/loop-dispatch.sh \
-  --tasks-file tasks.json \
-  --runner-cmd "opencode run --model opencode/deepseek-v4-flash-free" \
-  --reduce-runner-cmd "opencode run --model nvidia/openai/gpt-oss-120b" \
-  --max-iterations 3 \
-  --parallelism 3 \
-  --isolate-workspace \
-  --summary-dir /tmp/my-loop-run
-```
-
-每輪產生 `<summary-dir>/iter-NN/summary.json` 與 `iter-NN/reduced.json`，最終 reduced envelope 輸出到 stdout。
-
-### run-gc.sh — 執行記錄清理
-
-清理 `.tao/runs/` 下的過期執行記錄（含 git worktree）。
-
-```bash
-bash scripts/run-gc.sh                       # 乾跑：列出將移除的 runs
-bash scripts/run-gc.sh --execute             # 執行清理（預設保留 7 天）
-bash scripts/run-gc.sh --max-age 3 --execute # 自訂保留天數
-```
-
-### sync-superpowers.sh — 同步上游技能
-
-從上游 [obra/superpowers](https://github.com/obra/superpowers) 倉庫拉取指定版本的技能文件到 `references/superpowers/`。
-
-```bash
-# 預覽同步差異
-bash scripts/sync-superpowers.sh a98c5dfc --dry-run
-
-# 執行同步
-bash scripts/sync-superpowers.sh v4.2.0
-```
-
-## 路由設定檔 (Routing Configuration)
-
-自動路由所使用的設定檔位於 [`references/skill-routing.conf`](references/skill-routing.conf)，格式為 `.conf`（INI 風格）。
-
-### 結構說明
-
-```ini
-[default]
-role=oracle          # 無匹配時的預設角色
-skill=brainstorming   # 無匹配時的預設技能
-reason=fallback
-
-[route.debugging]
-reason=debugging
-role=fixer
-skill=systematic-debugging
-pattern=根因          # bash ERE 正則（不區分大小寫）
-pattern=除錯
-pattern=debug
-pattern=unexpected
-```
-
-- `[default]`：必填，定義無匹配時的 fallback 角色與技能。
-- `[route.<id>]`：每個路由規則需有 `role`、`skill`、至少一個 `pattern`。
-- `pattern`：使用 bash ERE 正則表達式，匹配時不區分大小寫。可定義多個 `pattern`，任一匹配即觸發。
-- 匹配順序：依設定檔中的宣告順序，先匹配先採用。
-
-## 標準調用流程 (Standard Invocation Flow)
-
-所有 CLI 調用皆需遵循**無狀態（Stateless）**原則。
-建議將對應角色參考文件一併傳入，以確保輸出維持角色分工一致性。
-
-### 自動調用（推薦）
-
-使用自動化腳本處理路由與委派，適合大多數場景：
-
-```bash
-# 一鍵自動路由 + 執行
-bash scripts/orchestrate-skill.sh \
-  --prompt "你的任務描述" \
-  --runner-cmd "opencode run --model nvidia/deepseek-ai/deepseek-v4-pro"
-```
-
-### 手動調用
-
-### 1. Explorer 任務（結構掃描）
-```bash
-# 用 opencode run 直接送出任務
-opencode run --model "provider/model" \
-  --file "skills/tao-of-opencode/references/explorer.md" \
-  "請掃描當前目錄，並列出核心架構與依賴關係摘要。"
-```
-
-### 2. Oracle 任務（策略與重構）
-```bash
-# 將角色文件與目標檔案一起附加
-opencode run --model "provider/model" \
-  --file "skills/tao-of-opencode/references/oracle.md" \
-  --file "complex_logic.py" \
-  "請提供重構方案，理清此模組的主要設計問題。"
-```
-
-### 3. Librarian 任務（文件整理）
-```bash
-opencode run --model "provider/model" \
-  --file "skills/tao-of-opencode/references/librarian.md" \
-  --file "raw_code.js" \
-  "為此程式碼撰寫標準 JSDoc 文件。"
-```
-
-### 4. Fixer 任務（修復與測試）
-```bash
-opencode run --model "provider/model" \
-  --file "skills/tao-of-opencode/references/fixer.md" \
-  "請為這個函數編寫 Jest 單元測試，涵蓋邊界案例。"
-```
-
-### 5. Designer 任務（介面與體驗）
-```bash
-opencode run --model "provider/model" \
-  --file "skills/tao-of-opencode/references/designer.md" \
-  "請設計一個現代化的登入表單，使用 Tailwind CSS。"
-```
+> 早期的 shell 編排機制（orchestrate-skill / skill-dispatch / parallel-dispatch / loop-dispatch 等）已移除。角色調度改由宿主原生 subagent 或 in-context 完成，不再經由 shell 啟動。
 
 ## 執行原則 (Execution Principles)
 
-1. **無狀態（Stateless）**：
-   每次調用都需提供完整上下文，不假設歷史記憶。
-
-2. **職責分離（Separation of Concerns）**：
-   依任務性質載入正確角色參考文件，避免角色混用造成輸出偏移。
-
-3. **成本控制（Cost Efficiency）**：
-   優先使用較小模型與必要上下文，僅在需要時升級較大模型。
-
-4. **輸入隔離（Input Isolation）**：
-   傳遞長內容時，優先使用 `stdin` 管道，避免提示詞污染與遺漏。
+1. **無狀態 (Stateless)**：委派給角色（尤其原生 subagent）時提供完整上下文，不假設子代理有歷史記憶。
+2. **職責分離 (Separation of Concerns)**：依任務性質載入正確角色卡，避免角色混用造成輸出偏移。
+3. **成本控制 (Cost Efficiency)**：優先用較小模型與必要上下文，僅在需要時升級。
+4. **輸入隔離 (Input Isolation)**：傳遞長內容時優先用檔案/artifact 路徑，避免提示詞污染與遺漏。

@@ -34,63 +34,18 @@ model: nvidia/minimaxai/minimax-m2.7
 2. 涉及外部事實（價格、新聞、法規、版本、公告）時，必須附來源與查詢日期（YYYY-MM-DD）。
 3. 若引用資料不完整，必須先標示缺口，再給暫時結論。
 4. 多步驟任務先回報輸出格式（章節、表格、checklist）再撰寫。
-5. **最終回覆必須是一段 JSON**，遵循 [`agent-message.md`](agent-message.md) 契約 v1.0。完整文件/註解寫到 artifact 檔，summary 只放重點。
+5. 交付時直接給出重點摘要；完整文件、API 註解、ChangeLog 寫到對應檔案（`docs/...`）並附路徑，不需包成 JSON envelope。
 
-## 📤 輸出契約 (Agent Message v1.0)
+## 📤 輸出 (Output)
 
-完整 schema 見 [`agent-message.schema.json`](agent-message.schema.json)。回覆只能是一段 fenced JSON block，前後不得有任何文字。
+回傳人類可讀的重點摘要；完整文件、API 註解、ChangeLog 寫到對應檔案並附可追溯路徑。
 
-完整文件、API 註解、ChangeLog 都寫到 artifact，**不要塞進 JSON 字串**。
+- 文件層級的觀察多為 `info`/`low`；程式碼與文件嚴重不符才標 `medium`。
+- 後續建議常指向 Fixer（補實作）或 Oracle（語意不明需釐清）。例如：
 
-範例（示範用合法輸出，請完全比照結構，只替換內容）：
-
-```json
-{
-  "schema_version": "1.0",
-  "task_id": "librarian-01-calc-risk-docstring",
-  "role": "librarian",
-  "skill": "requesting-code-review",
-  "status": "ok",
-  "confidence": 0.9,
-  "outputs": {
-    "summary": "為 calculate_risk_score 補上 Google Style docstring，說明加權演算法輸入/輸出與邊界值。另外發現 user_profile 必填欄位未在型別提示中宣告，建議補 TypedDict。",
-    "artifacts": [
-      {
-        "path": ".tao/runs/example/artifacts/librarian-01-docstring.py",
-        "kind": "doc",
-        "description": "更新後的 calculate_risk_score 函數含完整 docstring"
-      },
-      {
-        "path": ".tao/runs/example/artifacts/librarian-01-changelog.md",
-        "kind": "doc",
-        "description": "本次文件變更的 ChangeLog 條目"
-      }
-    ],
-    "findings": [
-      {
-        "id": "f-001",
-        "severity": "low",
-        "message": "user_profile 必填欄位 (age, location) 未在型別提示中宣告，建議引入 TypedDict",
-        "location": "src/risk/calculator.py:12"
-      }
-    ],
-    "next_actions": [
-      {
-        "role": "fixer",
-        "skill": "test-driven-development",
-        "prompt": "依 f-001 為 user_profile 建立 TypedDict 並補測試",
-        "depends_on": [],
-        "parallelizable": true
-      }
-    ]
-  }
-}
-```
-
-Librarian 專屬欄位約束：
-- `outputs.artifacts[].kind` 通常為 `doc`；若是規格類則為 `spec`。
-- `outputs.findings[]` 多為 `info`/`low`（文件層級的觀察），若發現程式碼與文件嚴重不符可標 `medium`。
-- `outputs.next_actions[]` 常指向 `fixer`（補實作）或 `oracle`（語意不明需釐清）。
+> 為 `calculate_risk_score` 補上 Google Style docstring，說明加權演算法輸入/輸出與邊界值；ChangeLog 見 `docs/change-log.md`。
+>
+> 觀察（low）：`user_profile` 必填欄位（age, location）未在型別提示中宣告（`src/risk/calculator.py:12`）。建議交 Fixer 建立 TypedDict 並補測試。
 
 ## 📜 執行指引 (System Prompt)
 

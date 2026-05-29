@@ -49,119 +49,15 @@
 
 ## 標準使用方式 (Usage)
 
-本系統透過 `opencode` CLI 進行請求。以下為常見的請求範例：
+安裝後（見〈安裝配置〉），當前 agent 讀取 `SKILL.md`（或宿主 `AGENTS.md` 的受管區塊）即以 orchestrator 身分運作。**沒有 CLI 入口**——你（agent 本體）直接依協議調度角色：
 
-```bash
-# 讓 Fixer 撰寫測試
-cat component.js | opencode run --model "nvidia/qwen/qwen3-coder-480b-a35b-instruct" \
-  "請為此組件編寫測試案例。"
+1. **路由**：依 `SKILL.md` 的「技能路由表」判斷該找哪個角色、用什麼技能。
+2. **委派（host-agnostic）**：
+   - **優先**用宿主原生 subagent/task（如 Claude Code 的 Task、opencode 的 agent），為角色開子代理，交付「角色卡 + 任務 + 必要上下文」，取得隔離與無狀態。
+   - 宿主無此能力時，於同一對話內讀取角色卡、**in-context 切換**該角色視角，再切回 orchestrator 整合。
+3. **交付**：角色的長輸出寫到 `docs/...`、`src/...`、`tests/...` 並附可追溯路徑。
 
-# 讓 Oracle 分析架構
-cat architecture.md | opencode run --model "nvidia/openai/gpt-oss-120b" \
-  "Oracle請根據工程原則提供更好的架構設計。"
-
-# 讓 Librarian 撰寫 README
-opencode run --model "nvidia/minimaxai/minimax-m2.7" \
-  "為本專案撰寫一份清晰易懂的 README。"
-```
-
-### 自動 Orchestration（建議）
-
-若希望由對話內容自動觸發對應 skill，可用以下入口：
-
-```bash
-# 對話自動路由 -> 角色 + skill -> 套用防遞迴執行層
-skills/tao-of-opencode/scripts/orchestrate-skill.sh \
-  --prompt "這個測試一直失敗，先找根因不要修" \
-  --depth 0 \
-  --runner-cmd 'opencode run --model "nvidia/deepseek-ai/deepseek-v4-pro" "$(cat)"'
-
-# 直接指定角色與技能（進階）
-skills/tao-of-opencode/scripts/skill-dispatch.sh \
-  --role fixer \
-  --skill systematic-debugging \
-  --execution-mode delegated \
-  --depth 1 \
-  --parent-skill executing-plans \
-  --edge-type requires_now \
-  --visited-skills writing-plans,executing-plans \
-  --prompt "請先做根因分析，暫不提修補方案" \
-  --runner-cmd 'opencode run --model "nvidia/deepseek-ai/deepseek-v4-pro" "$(cat)"'
-```
-
-### Multi-Agent 並行執行
-
-```bash
-# 定義 tasks（JSON array），同時觸發多個 agent
-bash skills/tao-of-opencode/scripts/parallel-dispatch.sh \
-  --tasks-file tasks.json \
-  --parallelism 3 \
-  --runner-cmd "opencode run --model opencode/deepseek-v4-flash-free" \
-  --isolate-workspace \
-  --summary-file /tmp/summary.json
-
-# 合流多個 envelope，oracle 合成行動清單
-bash skills/tao-of-opencode/scripts/reduce-envelopes.sh \
-  --summary-file /tmp/summary.json \
-  --runner-cmd "opencode run --model nvidia/openai/gpt-oss-120b"
-```
-
-tasks.json 格式：
-```json
-[
-  { "role": "explorer", "skill": "executing-plans", "prompt": "掃描 src/ 模組結構" },
-  { "role": "fixer",    "skill": "systematic-debugging", "prompt": "追查 parse_date 的 None 錯誤" }
-]
-```
-
-### 自動迴圈執行（Phase 3）
-
-`loop-dispatch.sh` 串接 parallel-dispatch + reduce-envelopes，讀取每輪 reducer 的 `next_actions` 自動組成下一輪任務，直到收斂或達到 `--max-iterations`：
-
-```bash
-bash skills/tao-of-opencode/scripts/loop-dispatch.sh \
-  --tasks-file tasks.json \
-  --runner-cmd "opencode run --model opencode/deepseek-v4-flash-free" \
-  --reduce-runner-cmd "opencode run --model nvidia/openai/gpt-oss-120b" \
-  --max-iterations 3 \
-  --parallelism 3 \
-  --isolate-workspace \
-  --summary-dir /tmp/my-loop-run
-```
-
-每輪在 `<summary-dir>/iter-NN/` 下產生 `wave-NN.json`（各 wave 的 parallel summary）與 `reduced.json`；最終 reduced envelope 輸出到 stdout。
-
-**收斂機制：**
-- `next_actions` 中的 `depends_on` 欄位會被解析為拓撲依賴，自動切成有序 waves — 同一 wave 並行，不同 wave 依序執行
-- 每輪對 next_actions 計算 fingerprint（SHA256 of sorted role/skill/prompt），相同 fingerprint 再次出現即判定擺盪並提前終止
-
-### Envelope 驗證
-
-```bash
-# 驗證 agent 輸出是否符合 Agent Message v1.0 schema
-bash skills/tao-of-opencode/scripts/validate-agent-message.sh <message.json>
-
-# 從 agent 完整輸出中自動抽取 ```json block 再驗證
-bash skills/tao-of-opencode/scripts/validate-agent-message.sh --extract <agent-output.txt>
-```
-
-### 執行記錄維護
-
-每次 `skill-dispatch.sh` 或 `parallel-dispatch.sh` 執行，會在 `.tao/runs/<request-id>/` 下產生 raw 輸出與 envelope。使用 `run-gc.sh` 定期清理：
-
-```bash
-# 乾跑：列出 7 天前的過期 run
-bash skills/tao-of-opencode/scripts/run-gc.sh
-
-# 執行清理（連同 git worktree 一起移除）
-bash skills/tao-of-opencode/scripts/run-gc.sh --execute
-
-# 只清特定 run
-bash skills/tao-of-opencode/scripts/run-gc.sh --request-id <id> --execute
-
-# 自訂保留天數
-bash skills/tao-of-opencode/scripts/run-gc.sh --max-age 3 --execute
-```
+> 早期的 shell 編排機制（`orchestrate-skill.sh`、`skill-dispatch.sh`、`parallel-dispatch.sh`、`loop-dispatch.sh`、Agent Message envelope、dispatcher 契約等）已於 2026-05-29 全面移除。角色調度不再經由任何 shell 包裝或 `opencode run` 子進程；背景見 [`docs/orchestrator-identity-and-portable-install.md`](docs/orchestrator-identity-and-portable-install.md)。
 
 ### 工具調用與查證規範（摘要）
 
@@ -174,9 +70,8 @@ bash skills/tao-of-opencode/scripts/run-gc.sh --max-age 3 --execute
 
 更多詳細規範與指令範例，請參閱：
 -   [Tao of OpenCode Protocol](skills/tao-of-opencode/SKILL.md)
+-   [Orchestrator 身份確立與可攜安裝設計](docs/orchestrator-identity-and-portable-install.md)
 -   [Tao x Superpowers 操作指引](docs/superpowers_playbook.md)
--   [Skill Dispatcher Contract](docs/skill_dispatcher_contract.md)
--   [Skill Routing 格式](docs/skill_routing_format.md)
 -   [SemVer 版本決策樹](docs/semver_decision_tree.md)
 -   [Release Note 模板](docs/release_note_template.md)
 -   [角色職能與技能對照表](docs/celestial_skill_mapping.md)
@@ -299,6 +194,31 @@ mkdir -p ~/.codeium/windsurf/skills
 ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-opencode ~/.codeium/windsurf/skills/tao-of-opencode
 ```
 
+### 3. 確立 orchestrator 根身份（模式 B）
+
+角色身份靠 skill 連結即可（上面步驟）；但「你是統籌者、何時找誰」的 **orchestrator 根身份**沒辦法只靠 skill 確立——skill 被 symlink 進宿主後只是「被動供查閱」，宿主的 agent loop 不會因此知道自己是統籌者。要把根身份**安裝進宿主**，把一段 marker 受管區塊冪等寫進宿主實際讀的 `AGENTS.md`。詳見 [`docs/orchestrator-identity-and-portable-install.md`](docs/orchestrator-identity-and-portable-install.md)。
+
+> 註：早期曾用 shell 包裝（`orchestrate-skill.sh`）在 runtime 注入根協議，但它不在宿主呼叫路徑上、注不進宿主主 agent，並非宿主安裝途徑，現已移除。宿主安裝一律走下面的受管區塊。
+
+用 `install-orchestrator.sh`（行為仿 GitNexus `gitnexus analyze`，冪等、非破壞）：
+
+```bash
+S=skills/tao-of-opencode/scripts/install-orchestrator.sh
+
+# 預覽將寫入 ./AGENTS.md 的受管區塊（不寫檔）
+bash "$S" --dry-run
+
+# 寫入指定宿主實際讀的那份 AGENTS.md
+#   注意：要指向 agent 執行時實際讀的檔案，例如 TeleNexus 是 workspace/AGENTS.md，
+#   而非 repo 根的 AGENTS.md。
+bash "$S" --target workspace/AGENTS.md
+
+# 卸載（移除受管區塊，標記外的手寫憲法保留）
+bash "$S" --target workspace/AGENTS.md --remove
+```
+
+受管區塊以 `<!-- tao:start -->` / `<!-- tao:end -->` 包夾，只放「名冊摘要 + 調度準則」；全文角色卡永遠留在 `skills/`，標記以外的內容不會被動到。每次寫入前會建立時間戳備份。
+
 ---
 
 ## 目錄結構
@@ -307,8 +227,7 @@ ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-opencode ~/.codeium/wi
 .
 ├── README.md
 ├── docs/
-│   ├── skill_dispatcher_contract.md
-│   ├── skill_routing_format.md
+│   ├── orchestrator-identity-and-portable-install.md
 │   ├── superpowers_playbook.md
 │   ├── semver_decision_tree.md
 │   ├── release_note_template.md
@@ -317,22 +236,13 @@ ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-opencode ~/.codeium/wi
 └── skills/
     └── tao-of-opencode/
         ├── SKILL.md
-        ├── scripts/
-        │   ├── orchestrate-skill.sh      # 自動路由 + 委派（推薦入口）
-        │   ├── skill-dispatch.sh         # 手動指定角色 + 技能委派
-        │   ├── parallel-dispatch.sh      # 多 Agent 並行 fan-out
-        │   ├── reduce-envelopes.sh       # 多 Agent 結果合流（Oracle）
-        │   ├── loop-dispatch.sh          # 自動迴圈（parallel + reduce + 收斂）
-        │   ├── validate-agent-message.sh # Envelope schema 驗證
-        │   ├── run-gc.sh                 # .tao/runs/ 執行記錄清理
+        ├── scripts/                      # 純維護工具（非角色調度）
+        │   ├── install-orchestrator.sh   # 模式 B：受管區塊寫進宿主 AGENTS.md
         │   ├── sync-superpowers.sh       # 同步上游 Superpowers 技能
         │   ├── assess-models.sh          # 模型能力評估
         │   └── refresh-model-registry.sh # 模型清單同步
         └── references/
-            ├── agent-message.schema.json # Agent Message v1.0 JSON Schema
-            ├── agent-message.md          # 輸出契約說明與 few-shot 範例
             ├── model-registry.conf       # 模型清單與梯隊定義
-            ├── skill-routing.conf        # 自動路由規則
             ├── explorer.md
             ├── oracle.md
             ├── librarian.md

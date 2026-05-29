@@ -14,7 +14,7 @@
 
 1. 涉及「最新/今日/近期/可能變動」資訊時，必須先調用工具查證（CLI/API/web search）再回覆。
 2. 使用外部事實（價格、新聞、法規、版本、公告）時，必須附來源與查詢日期（YYYY-MM-DD）。
-3. 優先使用本地可用工具；若呼叫 `opencode` CLI，需明確說明用途（摘要、分析、對比）。
+3. 優先使用本地可用工具；若委派角色子代理協助，需明確說明用途（摘要、分析、對比）。
 4. 若受限於網路或權限而無法查證，需說明限制與已嘗試步驟，不得假設最新資訊。
 5. 多步驟任務先回報「路由角色 + 將使用技能/工具」再執行。
 
@@ -39,143 +39,58 @@
 
 ### Step B: 載入角色指南 + 技能文件
 
-建議把「角色指南」與「superpowers skill」一起送進模型，讓角色與流程同時生效。
+委派該角色時，先載入「角色指南 + 對應 superpowers skill」，讓角色與流程同時生效。
 
-```bash
-# 範例：除錯任務（Fixer + systematic-debugging）
-cat skills/tao-of-opencode/references/fixer.md \
-    skills/tao-of-opencode/references/superpowers/systematic-debugging/SKILL.md \
-| opencode run --model "nvidia/qwen/qwen3-coder-480b-a35b-instruct" \
-  "Fixer專家，請依 systematic-debugging 四階段流程追查這個測試失敗的根因，先不要給修補方案。"
-```
+例如除錯任務（Fixer + systematic-debugging）：載入 `references/fixer.md` 與 `references/superpowers/systematic-debugging/SKILL.md`，委派給 Fixer 子代理（宿主無原生 subagent 時則 in-context 切換），指示：「依 systematic-debugging 四階段流程追查根因，先不要給修補方案。」
 
 ### Step C: 若技能有 reference，按需追加
 
 例如 `systematic-debugging` 可依情境再附：
-- `skills/tao-of-opencode/references/superpowers/systematic-debugging/root-cause-tracing.md`
-- `skills/tao-of-opencode/references/superpowers/systematic-debugging/defense-in-depth.md`
-- `skills/tao-of-opencode/references/superpowers/systematic-debugging/condition-based-waiting.md`
+- `.../superpowers/systematic-debugging/root-cause-tracing.md`
+- `.../superpowers/systematic-debugging/defense-in-depth.md`
+- `.../superpowers/systematic-debugging/condition-based-waiting.md`
 
-## 4) 常見任務範本（可直接貼）
+## 4) 常見任務範本
+
+每則 =「載入哪些檔 + 委派給誰 + 指示」。委派方式 host-agnostic（原生 subagent 優先，否則 in-context）。
 
 ### A. 需求發想/方案比較
-
-```bash
-cat skills/tao-of-opencode/references/oracle.md \
-    skills/tao-of-opencode/references/superpowers/brainstorming/SKILL.md \
-| opencode run --model "nvidia/qwen/qwen3-next-80b-a3b-thinking" \
-  "Oracle請先用 brainstorming 流程澄清需求，再提出 2-3 種方案與取捨。"
-```
+載入 `oracle.md` + `brainstorming/SKILL.md`，委派 Oracle：「先用 brainstorming 流程澄清需求，再提出 2-3 種方案與取捨。」
 
 ### B. 先寫計畫，再執行
-
-```bash
-# 先產生計畫
-cat skills/tao-of-opencode/references/oracle.md \
-    skills/tao-of-opencode/references/superpowers/writing-plans/SKILL.md \
-| opencode run --model "nvidia/qwen/qwen3-next-80b-a3b-thinking" \
-  "請為此需求輸出可執行的 implementation plan，存放到 docs/plans。"
-
-# 再按計畫執行
-cat skills/tao-of-opencode/references/explorer.md \
-    skills/tao-of-opencode/references/superpowers/executing-plans/SKILL.md \
-| opencode run --model "nvidia/deepseek-ai/deepseek-v4-pro" \
-  "請讀取 docs/plans/XXX.md，按 executing-plans 方式分批執行並在檢查點回報。"
-```
+1. 載入 `oracle.md` + `writing-plans/SKILL.md`，委派 Oracle：「為此需求輸出可執行的 implementation plan，存到 `docs/plans`。」
+2. 載入 `explorer.md` + `executing-plans/SKILL.md`，委派 Explorer：「讀取 `docs/plans/XXX.md`，按 executing-plans 分批執行並在檢查點回報。」
 
 ### C. 功能或 Bug 修復（TDD）
-
-```bash
-cat skills/tao-of-opencode/references/fixer.md \
-    skills/tao-of-opencode/references/superpowers/test-driven-development/SKILL.md \
-| opencode run --model "nvidia/qwen/qwen3-coder-480b-a35b-instruct" \
-  "請用 TDD（RED-GREEN-REFACTOR）修復這個 bug，先寫會失敗的測試再實作。"
-```
+載入 `fixer.md` + `test-driven-development/SKILL.md`，委派 Fixer：「用 TDD（RED-GREEN-REFACTOR）修復，先寫會失敗的測試再實作。」
 
 ### D. 送審與回覆審查
-
-```bash
-# 請求 code review
-cat skills/tao-of-opencode/references/librarian.md \
-    skills/tao-of-opencode/references/superpowers/requesting-code-review/SKILL.md \
-| opencode run --model "nvidia/moonshotai/kimi-k2.6" \
-  "請依 requesting-code-review 流程整理本次變更的 review 請求。"
-
-# 接收 code review
-cat skills/tao-of-opencode/references/fixer.md \
-    skills/tao-of-opencode/references/superpowers/receiving-code-review/SKILL.md \
-| opencode run --model "nvidia/qwen/qwen3-coder-480b-a35b-instruct" \
-  "請依 receiving-code-review 規範處理 reviewer 意見，先釐清再實作。"
-```
+- 載入 `librarian.md` + `requesting-code-review/SKILL.md`，委派 Librarian：「依 requesting-code-review 整理本次變更的 review 請求。」
+- 載入 `fixer.md` + `receiving-code-review/SKILL.md`，委派 Fixer：「依 receiving-code-review 處理 reviewer 意見，先釐清再實作。」
 
 ## 5) 提示詞寫法建議
 
 - 明確指定「角色 + skill + 產出格式」。
-- 對於 debug 類任務，務必加上「先根因、後修復」。
-- 對於完成宣告前，務必補 `verification-before-completion`。
+- debug 類務必「先根因、後修復」。
+- 完成宣告前務必補 `verification-before-completion`。
 
-建議模板：
+委派指示模板：
 
 ```text
 你是[角色]，請嚴格遵循 [skill-name]。
-目標：[你要達成的結果]
+目標：[要達成的結果]
 限制：[不能做什麼 / 必須先做什麼]
-輸出：[預期格式，例如步驟、diff、checklist]
+輸出：[預期格式；長內容寫到 docs/... 並附路徑]
 ```
 
-## 5.1) 自動 Skill 觸發的身份鎖定
+## 5.1) 委派方式（host-agnostic）
 
-若採用自動子 Skill 觸發，請明確區分：
+角色調度不經由任何 shell 包裝或 `opencode run` 子進程：
 
-- **Root 模式**：只在最外層載入 `skills/tao-of-opencode/SKILL.md`
-- **Delegated 模式**：子任務只載入角色指南 + 目標 Skill，不得重載 root
+- **優先：宿主原生 subagent/task**（如 Claude Code 的 Task、opencode 的 agent）。為角色開一個子代理，交付「角色卡 + 目標 skill + 任務 + 必要上下文」，藉此取得隔離與無狀態。
+- **次選：in-context 角色切換**。宿主無子代理機制時，於同一對話讀取角色卡、以該角色視角完成該段，再切回 orchestrator 整合。
 
-最小 runtime header 建議：
-
-```yaml
-EXECUTION_MODE: delegated
-ROLE_LOCK: <explorer|oracle|librarian|fixer|designer>
-SKILL_LOCK: <skill-name>
-ROOT_PROTOCOL: inherited
-FORBID_ROOT_RELOAD: true
-```
-
-並強制防遞迴：
-
-1. 維護 `visited_skills`，同鏈路不重入。
-2. 設定 `max_depth`（預設 1，必要時再覆寫）。
-3. 只對 `requires_now` 邊自動觸發；其餘視為參考。
-
-詳見 `docs/skill_dispatcher_contract.md`。
-
-建議入口腳本：`skills/tao-of-opencode/scripts/skill-dispatch.sh`
-
-```bash
-skills/tao-of-opencode/scripts/skill-dispatch.sh \
-  --role fixer \
-  --skill systematic-debugging \
-  --execution-mode delegated \
-  --depth 1 \
-  --parent-skill executing-plans \
-  --edge-type requires_now \
-  --visited-skills writing-plans,executing-plans \
-  --prompt "請先做根因分析，暫不提修補方案" \
-  --runner-cmd 'opencode run --model "nvidia/deepseek-ai/deepseek-v4-pro" "$(cat)"'
-```
-
-若希望保留「對話驅動自動觸發 skill」：
-
-```bash
-skills/tao-of-opencode/scripts/orchestrate-skill.sh \
-  --prompt "這個測試失敗了，先找根因不要修" \
-  --depth 0 \
-  --runner-cmd 'opencode run --model "nvidia/deepseek-ai/deepseek-v4-pro" "$(cat)"'
-```
-
-此腳本會先做 role+skill 自動路由，再把結果交給 `skill-dispatch.sh` 套用同一套防遞迴規則。
-
-路由規則預設讀取：`skills/tao-of-opencode/references/skill-routing.conf`。
-如需客製規則，可加 `--route-config <path>` 指向另一份 `.conf`。
+共通：委派前載入角色卡與 skill；多步驟任務先回報「路由角色 + 技能」；簡單任務直接做。完整協議見 `skills/tao-of-opencode/SKILL.md` 的〈調度方式 (Delegation)〉。
 
 ## 6) 團隊落地規範（建議）
 
