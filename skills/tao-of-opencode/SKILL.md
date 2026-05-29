@@ -29,7 +29,9 @@ metadata:
 
 ## 建議模型（供宿主選擇角色 subagent 模型時參考）
 
-若宿主能為各角色子代理指定模型，以下為建議；無法指定時可忽略本段。對應基於 NVIDIA NIM 提供之免費模型清單：
+> **這是 2026-05 的快照、非綁定規格。** 型號清單會隨供應商上下架而過時；下表只是「角色↔模型」的建議偏好，不是要求。實際可用性與梯隊請以 `references/model-registry.conf`（由 `scripts/assess-models.sh` 實測更新）為準。宿主若無法指定模型，整段可忽略——角色分工不依賴特定型號。
+
+若宿主能為各角色子代理指定模型，以下為建議。對應基於 NVIDIA NIM 提供之免費模型清單：
 
 - `nvidia/deepseek-ai/deepseek-v4-pro`
 - `nvidia/qwen/qwen3-next-80b-a3b-instruct`
