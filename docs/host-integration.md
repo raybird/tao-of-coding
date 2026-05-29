@@ -80,6 +80,11 @@ AGENTS.md（受管區塊）      → 宣告 orchestrator 身份 + 路由準則
 
 ### 注意事項
 - 受管區塊要寫進「agent 實際 cwd 會讀到」的那份 `AGENTS.md`（近 cwd 者覆寫遠者）。
+- **precedence**：Codex 視「越後面的內容優先級越高」。若你希望**專案自訂規則覆寫本協議**，安裝時用 `--position prepend` 把區塊放檔頭，讓你後面的內容勝出：
+  ```bash
+  bash skills/tao-of-opencode/scripts/install-orchestrator.sh --target AGENTS.md --position prepend
+  ```
+  反之要讓本協議當基礎框架（多數情況），用預設 `append`（檔尾）即可。
 - `max_depth=1` 表示預設不支援子代理再開子代理；多階流程由 orchestrator 逐段派發。
 
 來源（查詢日 2026-05-30）：

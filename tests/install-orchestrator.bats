@@ -87,3 +87,47 @@ prepend_constitution() {
   grep -q "只有手寫內容" "$TMP/plain.md"
   ! grep -q "<!-- tao:start -->" "$TMP/plain.md"
 }
+
+@test "--position append（預設）：無標記檔區塊放檔尾" {
+  printf '既有內容\n' > "$TMP/plain.md"
+  bash "$SCRIPT" --target "$TMP/plain.md" --position append
+  # 既有內容應在區塊起點之前
+  start_line="$(grep -n '<!-- tao:start -->' "$TMP/plain.md" | cut -d: -f1)"
+  content_line="$(grep -n '既有內容' "$TMP/plain.md" | cut -d: -f1)"
+  [ "$content_line" -lt "$start_line" ]
+}
+
+@test "--position prepend：無標記檔區塊放檔頭、既有內容在後" {
+  printf '既有內容\n' > "$TMP/plain.md"
+  bash "$SCRIPT" --target "$TMP/plain.md" --position prepend
+  grep -q "既有內容" "$TMP/plain.md"
+  start_line="$(grep -n '<!-- tao:start -->' "$TMP/plain.md" | cut -d: -f1)"
+  content_line="$(grep -n '既有內容' "$TMP/plain.md" | cut -d: -f1)"
+  [ "$start_line" -lt "$content_line" ]
+}
+
+@test "--position prepend 後仍冪等（第二次無變更）" {
+  printf '既有內容\n' > "$TMP/plain.md"
+  bash "$SCRIPT" --target "$TMP/plain.md" --position prepend
+  cp "$TMP/plain.md" "$TMP/first"
+  bash "$SCRIPT" --target "$TMP/plain.md" --position prepend
+  diff "$TMP/first" "$TMP/plain.md"
+}
+
+@test "已有標記時忽略 --position：就地替換、不挪位置" {
+  printf '既有內容\n' > "$TMP/plain.md"
+  bash "$SCRIPT" --target "$TMP/plain.md" --position append   # 區塊在檔尾
+  # 用 prepend 重跑（同時改 skill-ref 觸發內容變更）
+  bash "$SCRIPT" --target "$TMP/plain.md" --position prepend --skill-ref "NEW/path"
+  grep -q "NEW/path" "$TMP/plain.md"
+  [ "$(grep -c '<!-- tao:start -->' "$TMP/plain.md")" -eq 1 ]
+  # 位置仍在檔尾（既有內容在區塊之前）
+  start_line="$(grep -n '<!-- tao:start -->' "$TMP/plain.md" | cut -d: -f1)"
+  content_line="$(grep -n '既有內容' "$TMP/plain.md" | cut -d: -f1)"
+  [ "$content_line" -lt "$start_line" ]
+}
+
+@test "--position 非法值報錯" {
+  run bash "$SCRIPT" --target "$TARGET" --position sideways
+  [ "$status" -ne 0 ]
+}

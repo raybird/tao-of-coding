@@ -10,18 +10,23 @@
 #   bash install-orchestrator.sh [選項]
 #
 # 選項：
-#   --target <path>     受管區塊寫入的宿主 AGENTS.md（預設 $PWD/AGENTS.md）
-#   --skill-ref <path>  區塊內角色卡連結的路徑前綴
-#                       （預設 skills/tao-of-opencode/references）
-#   --remove            移除受管區塊（卸載），標記外內容保留
-#   --dry-run           預覽 diff，不寫檔
-#   -h, --help          顯示說明
+#   --target <path>        受管區塊寫入的宿主 AGENTS.md（預設 $PWD/AGENTS.md）
+#   --skill-ref <path>     區塊內角色卡連結的路徑前綴
+#                          （預設 skills/tao-of-opencode/references）
+#   --position append|prepend
+#                          首次寫入無標記檔時，區塊放檔尾(append，預設)或檔頭(prepend)。
+#                          僅在目標尚無受管區塊時生效；已有標記則就地替換、不挪位置。
+#                          Codex 等「越後面優先」宿主若要專案規則覆寫本協議，用 prepend。
+#   --remove               移除受管區塊（卸載），標記外內容保留
+#   --dry-run              預覽 diff，不寫檔
+#   -h, --help             顯示說明
 set -euo pipefail
 
 usage() {
   cat <<'USAGE'
 Usage:
-  install-orchestrator.sh [--target <path>] [--skill-ref <path>] [--remove] [--dry-run]
+  install-orchestrator.sh [--target <path>] [--skill-ref <path>]
+                          [--position append|prepend] [--remove] [--dry-run]
 
 Examples:
   # 預覽將寫入 ./AGENTS.md 的內容
@@ -29,6 +34,9 @@ Examples:
 
   # 寫入指定宿主的 AGENTS.md（如 TeleNexus 的 workspace/AGENTS.md）
   install-orchestrator.sh --target workspace/AGENTS.md
+
+  # 首次寫入時把區塊放檔頭（讓宿主後續內容可覆寫本協議）
+  install-orchestrator.sh --target AGENTS.md --position prepend
 
   # 移除受管區塊
   install-orchestrator.sh --target workspace/AGENTS.md --remove
@@ -46,6 +54,7 @@ END="<!-- tao:end -->"
 
 TARGET="$PWD/AGENTS.md"
 SKILL_REF="skills/tao-of-opencode/references"
+POSITION="append"
 DRY_RUN=0
 REMOVE=0
 
@@ -59,6 +68,14 @@ while (($#)); do
     --skill-ref)
       (($# < 2)) && { echo "Error: --skill-ref requires a value." >&2; usage; exit 1; }
       SKILL_REF="$2"
+      shift 2
+      ;;
+    --position)
+      (($# < 2)) && { echo "Error: --position requires a value." >&2; usage; exit 1; }
+      case "$2" in
+        append|prepend) POSITION="$2" ;;
+        *) echo "Error: --position 只接受 append 或 prepend。" >&2; usage; exit 1 ;;
+      esac
       shift 2
       ;;
     --remove)
@@ -163,6 +180,13 @@ append_block() {
   cat "$BLOCK_FILE" >> "$CANDIDATE"
 }
 
+# 在檔頭放受管區塊、空一行後接原有內容。
+prepend_block() {
+  cat "$BLOCK_FILE" > "$CANDIDATE"
+  printf '\n' >> "$CANDIDATE"
+  cat "$TARGET" >> "$CANDIDATE"
+}
+
 # ── 組出 CANDIDATE ───────────────────────────────────────────────
 if [[ "$REMOVE" -eq 1 ]]; then
   if ! has_markers; then
@@ -180,6 +204,8 @@ else
     cp "$BLOCK_FILE" "$CANDIDATE"
   elif has_markers; then
     replace_block
+  elif [[ "$POSITION" == "prepend" ]]; then
+    prepend_block
   else
     append_block
   fi
