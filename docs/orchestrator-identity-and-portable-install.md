@@ -176,4 +176,4 @@ tao-of-coding 內建 `skills/tao-of-opencode/scripts/sync-superpowers.sh`，可�
 1. ~~設計模式 B 的安裝/同步指令（冪等寫入受管區塊；參考 `gitnexus analyze` 行為）。~~ **已完成**：`skills/tao-of-opencode/scripts/install-orchestrator.sh`（冪等／非破壞／可 `--remove`／`--dry-run`，預設目標 `./AGENTS.md`、可 `--target` 覆寫）。
 2. ~~定稿 `<!-- tao:start --><!-- tao:end -->` 受管區塊的標準內容（委任狀 + 名冊摘要 + 調度準則）。~~ **已完成**：標準內容以 heredoc 硬寫於 `install-orchestrator.sh`（委任狀 + 五角色一行簡介 + 調度準則）。
 3. 實測 opencode 的 `AGENTS.md` 解析規則（第 6 節 Open Question）。
-4. ~~文件化安裝方式到 `README.md` / `docs/skill_dispatcher_contract.md`，供宿主選用。~~ **已完成（README）**：`README.md` 安裝章節已新增「確立 orchestrator 根身份（模式 B）」小節，並澄清模式 A 不是宿主安裝途徑；`CLAUDE.md` 常用指令亦補上模式 B 範例。
+4. ~~文件化安裝方式，供宿主選用。~~ **已完成**：`README.md` 安裝章節已新增「確立 orchestrator 根身份（模式 B）」小節，並澄清模式 A 不是宿主安裝途徑；`CLAUDE.md` 常用指令亦補上模式 B 範例。
