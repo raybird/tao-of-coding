@@ -42,7 +42,7 @@ skills/tao-of-opencode/
 
 ### 調度機制
 
-路由意圖以 `SKILL.md` 的「技能路由表」（markdown）呈現，由 agent 本體閱讀後判斷。委派方式 host-agnostic：**優先用宿主原生 subagent/task**（如 Claude Code 的 Task）取得隔離與無狀態；宿主無此能力時於同一對話內 **in-context 角色切換**。委派前載入對應角色卡與所需技能。詳見 `SKILL.md` 的〈調度方式 (Delegation)〉。
+路由意圖以 `SKILL.md` 的「技能路由表」（markdown）呈現，由 agent 本體閱讀後判斷。委派方式 host-agnostic：**優先用宿主原生 subagent/task**（如 Claude Code 的 Task）取得隔離與無狀態；宿主無此能力時於同一對話內 **in-context 角色切換**。委派前載入對應角色卡與所需技能。詳見 `SKILL.md` 的〈調度方式 (Delegation)〉，各宿主（Claude Code / Codex / Antigravity）落地範例見 `docs/host-integration.md`。
 
 > 早期的 shell 編排機制（orchestrate-skill / skill-dispatch / parallel-dispatch / loop-dispatch、Agent Message envelope、dispatcher 契約）已於 2026-05-29 全面移除。背景見 `docs/orchestrator-identity-and-portable-install.md`。
 
