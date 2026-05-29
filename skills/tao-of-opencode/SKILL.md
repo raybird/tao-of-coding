@@ -1,10 +1,11 @@
 ---
 name: tao-of-opencode
-description: host-agnostic 的多角色協作開發協議。指導當前 agent 以 orchestrator 身分回應使用者請求，並把任務分解為 Explorer、Oracle、Librarian、Fixer、Designer 等職能，透過宿主原生的 subagent/task 機制委派執行。
-compatibility: 不綁定任一宿主。可選工具：`bash` 與 `git`（僅維護腳本 sync-superpowers / install-orchestrator 等需要）。
+description: 把複雜開發任務依性質拆給 Explorer／Oracle／Librarian／Fixer／Designer 五種專家角色協作完成的編排協議。當請求涉及多步驟、需要架構決策、實作、除錯、文件或設計分工時，用它決定「找哪個角色、用什麼技能、如何委派」。
+compatibility: 不綁定任一宿主（host-agnostic）。可選工具：`bash` 與 `git`（僅維護腳本 sync-superpowers / install-orchestrator 等需要）。
 metadata:
   author: sub-agents
   version: "5.0.0"
+  tagline: 有序協作——從混亂中建立秩序，讓 AI 以分工的開發角色體系協作完成複雜任務
 ---
 
 # 程式之道 (Tao of Coding)
