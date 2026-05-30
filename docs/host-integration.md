@@ -54,6 +54,8 @@
 
 ## 2. OpenAI Codex CLI
 
+> **✅ 已實測（2026-05-30，`codex` v0.135.0，`codex exec --sandbox read-only`）**：把受管區塊寫進工作目錄 `AGENTS.md` 後，`codex exec` **自動從 cwd 載入**（無需任何額外旗標），並**完整採納本協議**——自稱「以 orchestrator（統籌者）身分運作」、列出 5 個 tao 角色、把「測試失敗找根因」**路由到 Fixer + systematic-debugging**、逐字引用調度準則。**三宿主中 headless 模式最乾淨**（不像 Antigravity headless 需 `--add-dir`）。詳見 `docs/case-studies/2026-05-30-orchestration-dogfood.md`。
+
 ### 安裝啟用
 - **根身份（模式 B）**：Codex 會把 `AGENTS.md` 從 repo 根往下串接，**越接近工作目錄者優先覆寫**，總大小上限 `project_doc_max_bytes`（預設 32 KiB；本受管區塊很小，無虞）。寫入 agent 實際工作目錄那份：
   ```bash
@@ -140,7 +142,7 @@ AGENTS.md（受管區塊）                    → orchestrator 身份 + 調度�
 | 宿主 | 根身份（模式 B）目標 | 角色身份（skill） | 原生子代理機制 | 無狀態隔離 |
 | :--- | :--- | :--- | :--- | :--- |
 | Claude Code | `CLAUDE.md` 或 `AGENTS.md` | skill 連結 | Task 工具 / `.claude/agents/*.md` | ✅ |
-| Codex CLI | `AGENTS.md`（近 cwd 覆寫，≤32 KiB） | Agent Skills | `.codex/agents/*.toml`，`max_depth=1` | ✅（並行彙整） |
+| Codex CLI | `AGENTS.md`（近 cwd 覆寫，≤32 KiB；headless 自動載入，✅2026-05-30 實測） | Agent Skills | `.codex/agents/*.toml`，`max_depth=1` | ✅（並行彙整） |
 | Antigravity | 工作目錄 `AGENTS.md`（headless 需 `--add-dir`，✅2026-05-30 實測） | `.agents/skills/`（目錄式） | Async Subagent Mode | ✅（背景並行） |
 
 任一宿主若無原生子代理，退回 in-context 角色切換（同一 session 輪流戴帽子，無真隔離）。

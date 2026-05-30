@@ -57,3 +57,21 @@
 - ✅ **模式 B 在 Antigravity 上可運作**：受管區塊被讀取後，orchestrator 身分、角色班底、路由準則都被正確採納——這是模式 B 在**第二個獨立宿主**上的確認，不再只是單一宿主現象。
 - ⚠️ **實測 gotcha**：`agy -p` headless 模式**不自動載入** workspace AGENTS.md，必須 `--add-dir`；否則退回原生模型、Mode B 靜默失效。此細節已回寫 `docs/host-integration.md`。
 - 限制：本次只測 headless `-p`，且止於「路由觀察」（未讓它實際派 subagent 執行）；互動/IDE 模式與完整執行未測。
+
+## 附錄：Codex（codex v0.135.0）跨宿主模式 B 驗證（2026-05-30）
+
+同手法（隔離 workspace 裝受管區塊，`codex exec --sandbox read-only` 跑路由題）。
+
+- **第一次就成功，無 gotcha**：`codex exec` **自動從 cwd 載入** `AGENTS.md`（不需 `--add-dir` 之類旗標），直接採納協議。
+- 回答（gpt-5.5）：自稱「以 orchestrator（統籌者）身分運作」、正確列出 5 個 tao 角色、把任務**路由到 Fixer + systematic-debugging**，並逐字引用調度準則「以追查根因為主 → 優先 systematic-debugging，不得先給修補方案」。
+- 結論：**模式 B 在 Codex 上可運作，且為三宿主中 headless 最乾淨者**。
+
+## 三宿主模式 B 驗證總表（2026-05-30）
+
+| 宿主 | headless 入口 | AGENTS.md 載入 | 採納協議身分/角色/路由 | 備註 |
+| :--- | :--- | :--- | :--- | :--- |
+| Claude Code | （本體，Task 子代理） | 自動 | ✅（完整 dogfood：實作 `--check`） | 最高擬真，真的派子代理執行 |
+| Codex CLI | `codex exec` | **自動（cwd）** | ✅（路由觀察） | headless 最乾淨，無額外旗標 |
+| Antigravity | `agy -p` | **需 `--add-dir`** | ✅（路由觀察） | 未加旗標會假陰性退回原生模型 |
+
+三個獨立宿主都讀取受管區塊並以 orchestrator 身分依協議路由——模式 B 的可攜性得到跨宿主確認。Claude Code 進一步完成了真實執行；Codex/Antigravity 止於路由觀察與 headless 載入行為，完整執行（L3）與互動模式待後續。
