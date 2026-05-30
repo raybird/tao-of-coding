@@ -60,7 +60,7 @@ START="<!-- tao:start -->"
 END="<!-- tao:end -->"
 
 TARGET="$PWD/AGENTS.md"
-SKILL_REF="skills/tao-of-opencode/references"
+SKILL_REF=""   # 空 = 未顯式指定 → 用 skill 名稱式 ROLE_CARD_HINT
 POSITION="append"
 DRY_RUN=0
 REMOVE=0
@@ -117,14 +117,21 @@ trap cleanup EXIT
 BLOCK_FILE="$TMP_DIR/block.md"
 CANDIDATE="$TMP_DIR/candidate.md"
 
-# 受管區塊內容（heredoc 硬寫；僅 ${SKILL_REF} 由參數注入）。
+# 角色卡引用：預設用 skill 名稱式（可攜、不含檔案路徑）；--skill-ref 覆寫成路徑式。
+if [[ -n "$SKILL_REF" ]]; then
+  ROLE_CARD_HINT="詳細角色卡見 ${SKILL_REF}/<role>.md。"
+else
+  ROLE_CARD_HINT="詳細角色卡見已連結的 \`tao-of-opencode\` skill 的 \`references/<role>.md\`（Explorer / Oracle / Librarian / Fixer / Designer）。"
+fi
+
+# 受管區塊內容（heredoc 硬寫；僅 ${ROLE_CARD_HINT} 由上方計算注入）。
 # 刻意只放「名冊摘要 + 調度準則」，全文角色卡永遠留在 skills/，避免宿主憲法肥大。
 cat > "$BLOCK_FILE" <<EOF
 ${START}
 # Tao of Coding — Orchestrator 協議
 
 你是本工作環境的 **orchestrator（統籌者）**。理解使用者請求、維持專案秩序，
-並調度合適的子代理完成任務。詳細角色卡見 ${SKILL_REF}/<role>.md。
+並調度合適的子代理完成任務。${ROLE_CARD_HINT}
 
 ## 角色班底
 - **Explorer** — 結構洞察：快速掃描專案結構、理解檔案關聯與依賴。

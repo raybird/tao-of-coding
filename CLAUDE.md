@@ -50,6 +50,20 @@ skills/tao-of-opencode/
 
 > 角色調度沒有 CLI 入口——你（agent 本體）直接依 `SKILL.md` 的〈調度方式〉以宿主原生 subagent 或 in-context 委派。以下僅為維護用腳本。
 
+### tao CLI（全域入口）
+
+由 `install.sh` 安裝後可用（`curl -fsSL .../install.sh | bash`）：
+
+```bash
+tao enable     # 當前資料夾寫入受管區塊（偵測 CLAUDE.md > AGENTS.md > 建 AGENTS.md）
+tao check      # 狀態檢查（exit 0/1/2）
+tao remove     # 卸載受管區塊
+tao link       # 連 skill 進宿主（委派 npx skill-linker）
+tao upgrade    # 升級 tao 本體（git pull）
+```
+
+`tao enable` 等同呼叫下方 `install-orchestrator.sh`，差別在自動偵測宿主檔、用絕對路徑、免記腳本位置。
+
 ### 模型能力評估
 ```bash
 # 預覽（不呼叫 API）

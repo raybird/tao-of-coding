@@ -157,69 +157,67 @@ assess-models.sh --tier ?   →   評估新模型
 | 工具 | 用途 | 安裝確認 |
 | :--- | :--- | :--- |
 | **Bash** | 執行維護腳本（`install-orchestrator` / `sync-superpowers` / `assess-models` 等）。 | `bash --version` |
-| **Git** | 同步上游 superpowers 技能。 | `git --version` |
+| **Git** | 同步上游 superpowers 技能；`install.sh` / `tao upgrade` 取得與升級內容。 | `git --version` |
+| **tao CLI** | 選用：全域入口（`tao enable` / `upgrade` 等），由 `install.sh` 安裝。 | `tao version` |
 | **OpenCode CLI** | 選用：僅 `assess-models.sh` 評估模型時需要。 | `opencode --version` |
 
 ---
 
 ## 安裝配置 (Installation)
 
-### 1. Clone
+### 快速安裝（推薦）
 
-建議將本專案放在 `~/Documents/AgentSkills`：
-
-```bash
-git clone https://github.com/raybird/tao-of-coding.git ~/Documents/AgentSkills/tao-of-coding
-```
-
-### 2. 建立連結 (Linking)
-
-推薦使用 `npx` 調用 `skill-linker` 進行互動式連結：
+一條指令裝好，全域取得 `tao` 指令（純 bash，需 `git`；Windows 需 WSL / git-bash）：
 
 ```bash
-npx skill-linker
+curl -fsSL https://raw.githubusercontent.com/raybird/tao-of-coding/main/install.sh | bash
 ```
 
-啟動後：
-1.  按 `L` 進入列表。
-2.  選擇 `tao-of-opencode`。
-3.  選擇要連結的 Agent (如 Antigravity, Windsurf) 並確認。
+> **偏好先檢視再執行？** 下載後看過再跑：
+> ```bash
+> curl -fsSL https://raw.githubusercontent.com/raybird/tao-of-coding/main/install.sh -o /tmp/tao-install.sh
+> less /tmp/tao-install.sh
+> bash /tmp/tao-install.sh
+> ```
 
-**備用方案：手動連結**
+安裝器會把內容放到 `~/.local/share/tao-of-coding`、把 `tao` 連進 `~/.local/bin`。若 `~/.local/bin` 不在 `PATH`，依提示加一行到你的 shell rc。
 
-若無法使用 npx，可手動建立連結：
+### 在任意專案資料夾啟用
 
 ```bash
-# Antigravity
-mkdir -p ~/.gemini/antigravity/skills
-ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-opencode ~/.gemini/antigravity/skills/tao-of-opencode
-
-# Windsurf
-mkdir -p ~/.codeium/windsurf/skills
-ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-opencode ~/.codeium/windsurf/skills/tao-of-opencode
+cd ~/projects/your-project
+tao link        # 首次：把 tao-of-opencode skill 連進宿主（委派 npx skill-linker）
+tao enable      # 偵測/建立 AGENTS.md（或既有 CLAUDE.md），寫入 orchestrator 受管區塊
 ```
 
-### 3. 確立 orchestrator 根身份（模式 B）
+常用：
 
-角色身份靠 skill 連結即可（上面步驟）；但「你是統籌者、何時找誰」的 **orchestrator 根身份**沒辦法只靠 skill 確立——skill 被 symlink 進宿主後只是「被動供查閱」，宿主的 agent loop 不會因此知道自己是統籌者。要把根身份**安裝進宿主**，把一段 marker 受管區塊冪等寫進宿主實際讀的 `AGENTS.md`。詳見 [`docs/orchestrator-identity-and-portable-install.md`](docs/orchestrator-identity-and-portable-install.md)。
+```bash
+tao enable --dry-run   # 預覽不寫檔
+tao check              # 檢查狀態（exit 0=最新/1=過時/2=未安裝）
+tao remove             # 卸載受管區塊
+tao upgrade            # 升級 tao 本體（git pull）
+```
 
-> 註：早期曾用 shell 包裝（`orchestrate-skill.sh`）在 runtime 注入根協議，但它不在宿主呼叫路徑上、注不進宿主主 agent，並非宿主安裝途徑，現已移除。宿主安裝一律走下面的受管區塊。
+`tao enable` 會自動偵測宿主檔：`--target` 指定 > 既有 `CLAUDE.md` > 既有 `AGENTS.md` > 否則建立 `AGENTS.md`。它等同呼叫下方 `install-orchestrator.sh`，差別在免記腳本路徑、用絕對路徑、自動偵測目標。
 
-用 `install-orchestrator.sh`（行為仿 GitNexus `gitnexus analyze`，冪等、非破壞）：
+### 進階：直接用底層腳本
+
+不想裝 `tao` 也可直接呼叫維護腳本（設計仿 GitNexus `gitnexus analyze`，冪等、非破壞；細節見 [`docs/orchestrator-identity-and-portable-install.md`](docs/orchestrator-identity-and-portable-install.md)）：
 
 ```bash
 S=skills/tao-of-opencode/scripts/install-orchestrator.sh
 
-# 預覽將寫入 ./AGENTS.md 的受管區塊（不寫檔）
-bash "$S" --dry-run
+bash "$S" --dry-run                          # 預覽（不寫檔）
+bash "$S" --target workspace/AGENTS.md       # 寫入宿主實際讀的那份 AGENTS.md
+bash "$S" --target workspace/AGENTS.md --remove   # 卸載
+```
 
-# 寫入指定宿主實際讀的那份 AGENTS.md
-#   注意：要指向 agent 執行時實際讀的檔案，例如 TeleNexus 是 workspace/AGENTS.md，
-#   而非 repo 根的 AGENTS.md。
-bash "$S" --target workspace/AGENTS.md
+skill 連結也可不經 `tao link`，用 `npx skill-linker` 或手動 symlink：
 
-# 卸載（移除受管區塊，標記外的手寫憲法保留）
-bash "$S" --target workspace/AGENTS.md --remove
+```bash
+mkdir -p ~/.gemini/antigravity/skills
+ln -s ~/.local/share/tao-of-coding/skills/tao-of-opencode ~/.gemini/antigravity/skills/tao-of-opencode
 ```
 
 受管區塊以 `<!-- tao:start -->` / `<!-- tao:end -->` 包夾，只放「名冊摘要 + 調度準則」；全文角色卡永遠留在 `skills/`，標記以外的內容不會被動到。每次寫入前會建立時間戳備份。
@@ -247,6 +245,9 @@ CI 三個 job：`bash -n` + `shellcheck`（lint）、`bats`（安裝器冪等/�
 ```text
 .
 ├── README.md
+├── install.sh                       # curl|bash bootstrap 安裝器
+├── bin/
+│   └── tao                          # 派發 CLI（enable/link/upgrade/check/remove）
 ├── docs/
 │   ├── orchestrator-identity-and-portable-install.md
 │   ├── superpowers_playbook.md

@@ -12,11 +12,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: bash -n（語法檢查，全部腳本）
         run: |
-          for s in skills/tao-of-opencode/scripts/*.sh tests/*.sh; do
+          for s in install.sh bin/tao skills/tao-of-opencode/scripts/*.sh tests/*.sh; do
             bash -n "$s"
           done
       - name: shellcheck（error 級；審完既有腳本後可調至 warning）
-        run: shellcheck -S error skills/tao-of-opencode/scripts/*.sh tests/*.sh
+        run: shellcheck -S error install.sh bin/tao skills/tao-of-opencode/scripts/*.sh tests/*.sh
 
   test:
     name: Bats tests
@@ -26,7 +26,7 @@ jobs:
       - name: install bats
         run: sudo apt-get update && sudo apt-get install -y bats
       - name: run bats
-        run: bats tests/install-orchestrator.bats
+        run: bats tests/*.bats
 
   docs:
     name: Doc link check
