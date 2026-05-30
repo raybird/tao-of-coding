@@ -198,3 +198,14 @@ prepend_constitution() {
   run bash "$SCRIPT" --target "$TARGET" --check --dry-run
   [ "$status" -eq 1 ]
 }
+
+@test "預設受管區塊用 skill 名稱式引用、不含相對路徑 skills/tao-of-opencode/references" {
+  bash "$SCRIPT" --target "$TARGET"
+  grep -q '`tao-of-opencode` skill' "$TARGET"
+  ! grep -q 'skills/tao-of-opencode/references' "$TARGET"
+}
+
+@test "--skill-ref 覆寫時改回路徑式引用（含該路徑）" {
+  bash "$SCRIPT" --target "$TARGET" --skill-ref "CUSTOM/refs"
+  grep -q "CUSTOM/refs/<role>.md" "$TARGET"
+}
