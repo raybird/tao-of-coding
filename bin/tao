@@ -25,7 +25,8 @@ usage() {
 子指令：
   enable [--target <p>] [--dry-run] [--remove] [--check]
                   在當前資料夾寫入 orchestrator 受管區塊。
-                  宿主檔偵測：--target > 既有 CLAUDE.md > 既有 AGENTS.md > 建立 AGENTS.md。
+                  目標：--target 指定 > 預設 AGENTS.md（建立/沿用）。
+                  要寫 CLAUDE.md 用 --target CLAUDE.md。
   link [<skills-dir>]
                   把 tao-of-opencode skill symlink 進宿主 skills 目錄。
                   指定 <skills-dir> 則連到該處；否則連進已偵測到的宿主。
@@ -39,9 +40,8 @@ USAGE
 }
 
 detect_target() {
-  if [[ -f "./CLAUDE.md" ]]; then echo "./CLAUDE.md"
-  elif [[ -f "./AGENTS.md" ]]; then echo "./AGENTS.md"
-  else echo "./AGENTS.md"; fi
+  # 預設一律 AGENTS.md（host-agnostic）；要寫 CLAUDE.md 用 --target CLAUDE.md。
+  echo "./AGENTS.md"
 }
 
 skill_linked() {

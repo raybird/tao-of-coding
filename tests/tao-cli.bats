@@ -22,26 +22,32 @@ teardown() {
   grep -q "<!-- tao:start -->" "$TMP/AGENTS.md"
 }
 
-@test "enable 既有 CLAUDE.md 優先寫 CLAUDE.md" {
+@test "enable 既有 CLAUDE.md 仍預設寫 AGENTS.md、不動 CLAUDE.md" {
   printf '# c\n' > "$TMP/CLAUDE.md"
   run bash "$TAO" enable
   [ "$status" -eq 0 ]
-  grep -q "<!-- tao:start -->" "$TMP/CLAUDE.md"
-  [ ! -f "$TMP/AGENTS.md" ]
+  grep -q "<!-- tao:start -->" "$TMP/AGENTS.md"
+  ! grep -q "<!-- tao:start -->" "$TMP/CLAUDE.md"
 }
 
-@test "enable 既有 AGENTS.md（無 CLAUDE.md）寫 AGENTS.md" {
+@test "enable 既有 AGENTS.md 寫 AGENTS.md" {
   printf '# a\n' > "$TMP/AGENTS.md"
   run bash "$TAO" enable
   [ "$status" -eq 0 ]
   grep -q "<!-- tao:start -->" "$TMP/AGENTS.md"
-  [ ! -f "$TMP/CLAUDE.md" ]
 }
 
 @test "enable --target 覆寫偵測" {
   run bash "$TAO" enable --target "$TMP/custom.md"
   [ "$status" -eq 0 ]
   grep -q "<!-- tao:start -->" "$TMP/custom.md"
+}
+
+@test "enable --target CLAUDE.md 明確寫 CLAUDE.md" {
+  printf '# c\n' > "$TMP/CLAUDE.md"
+  run bash "$TAO" enable --target "$TMP/CLAUDE.md"
+  [ "$status" -eq 0 ]
+  grep -q "<!-- tao:start -->" "$TMP/CLAUDE.md"
 }
 
 @test "enable 冪等（第二次內容不變）" {
