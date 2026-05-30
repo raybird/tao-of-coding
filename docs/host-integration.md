@@ -25,7 +25,7 @@
 ## 1. Claude Code
 
 ### 安裝啟用
-- **一鍵（推薦）**：`tao link && tao enable`——`enable` 會偵測既有 `CLAUDE.md` 優先寫入。底層仍是下方 `install-orchestrator.sh`。
+- **一鍵（推薦）**：`tao link && tao enable --target CLAUDE.md`——Claude Code 預設讀 `CLAUDE.md`，故明確指定它（`tao enable` 預設寫 `AGENTS.md`）。底層仍是下方 `install-orchestrator.sh`。
 - **角色身份（skill）**：把 `skills/tao-of-opencode` 連結進 Claude Code 的 skills（`tao link` 或手動 symlink）。
 - **根身份（模式 B）**：把受管區塊寫進專案 `CLAUDE.md`（Claude Code 預設讀取）或 `AGENTS.md`：
   ```bash

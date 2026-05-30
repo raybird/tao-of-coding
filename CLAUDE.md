@@ -55,7 +55,7 @@ skills/tao-of-opencode/
 由 `install.sh` 安裝後可用（`curl -fsSL .../install.sh | bash`）：
 
 ```bash
-tao enable     # 當前資料夾寫入受管區塊（偵測 CLAUDE.md > AGENTS.md > 建 AGENTS.md）
+tao enable     # 當前資料夾寫入受管區塊（預設 AGENTS.md；要寫 CLAUDE.md 用 --target CLAUDE.md）
 tao check      # 狀態檢查（exit 0/1/2）
 tao remove     # 卸載受管區塊
 tao link       # symlink skill 進宿主（自動偵測，或 tao link <skills-dir>）

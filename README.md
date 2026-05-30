@@ -18,7 +18,7 @@ curl -fsSL https://raw.githubusercontent.com/raybird/tao-of-coding/main/install.
 # 2. 在你的專案資料夾啟用
 cd ~/projects/your-project
 tao link        # 把 tao-of-opencode skill 連進宿主（首次）
-tao enable      # 寫入 orchestrator 受管區塊（自動偵測 CLAUDE.md / AGENTS.md）
+tao enable      # 寫入 orchestrator 受管區塊（預設 AGENTS.md）
 ```
 
 完成後，你的 agent 讀取宿主檔即以 orchestrator 身分運作。升級用 `tao upgrade`、卸載用 `tao remove`。
@@ -208,7 +208,7 @@ curl -fsSL https://raw.githubusercontent.com/raybird/tao-of-coding/main/install.
 ```bash
 cd ~/projects/your-project
 tao link        # 首次：把 tao-of-opencode skill symlink 進已偵測到的宿主
-tao enable      # 偵測/建立 AGENTS.md（或既有 CLAUDE.md），寫入 orchestrator 受管區塊
+tao enable      # 預設寫入 AGENTS.md（要寫 CLAUDE.md 用 --target CLAUDE.md）
 ```
 
 常用：
@@ -220,7 +220,7 @@ tao remove             # 卸載受管區塊
 tao upgrade            # 升級 tao 本體（git pull）
 ```
 
-`tao enable` 會自動偵測宿主檔：`--target` 指定 > 既有 `CLAUDE.md` > 既有 `AGENTS.md` > 否則建立 `AGENTS.md`。它等同呼叫下方 `install-orchestrator.sh`，差別在免記腳本路徑、用絕對路徑、自動偵測目標。
+`tao enable` 預設寫入 `AGENTS.md`（host-agnostic）：未給 `--target` 時一律建立/沿用當前資料夾的 `AGENTS.md`；要寫 Claude Code 的 `CLAUDE.md` 用 `tao enable --target CLAUDE.md`。它等同呼叫下方 `install-orchestrator.sh`，差別在免記腳本路徑、用絕對路徑。
 
 ### 進階：直接用底層腳本
 
