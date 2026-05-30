@@ -96,8 +96,10 @@ AGENTS.md（受管區塊）      → 宣告 orchestrator 身份 + 路由準則
 
 ## 3. Google Antigravity
 
+> **✅ 已實測（2026-05-30，`agy` v1.0.3）**：把受管區塊寫進工作目錄的 `AGENTS.md` 並以 `agy --add-dir <ws>` 載入後，agy **完整採納本協議**——自稱「以 Orchestrator（統籌者）身分運作」、正確列出 5 個 tao 角色、把「測試失敗找根因」**路由到 Fixer + systematic-debugging**，並逐字引用受管區塊的調度準則。Mode B 在 Antigravity 上**可運作**。詳見 `docs/case-studies/2026-05-30-orchestration-dogfood.md`。
+
 ### 安裝啟用
-- **根身份（模式 B）**：Antigravity 讀 repo 根的 `AGENTS.md`，其內容會 prepend 到該目錄內每個 prompt（取代舊 `.gemini/` 慣例）：
+- **根身份（模式 B）**：把受管區塊寫進 Antigravity 工作目錄的 `AGENTS.md`：
   ```bash
   bash skills/tao-of-opencode/scripts/install-orchestrator.sh --target AGENTS.md
   ```
@@ -120,7 +122,9 @@ AGENTS.md（受管區塊）                    → orchestrator 身份 + 調度�
 ```
 
 ### 注意事項
-- **版本敏感**：上述為 Antigravity 2.0 的 `AGENTS.md` + `.agents/skills/` 慣例；舊版用 `~/.gemini/antigravity/skills/`（本 repo README 安裝範例即舊式）。請依你的 Antigravity 版本選擇路徑。
+- **⚠️ headless 模式要 `--add-dir`（實測 gotcha）**：`agy -p`（非互動 `--print`）**不會自動載入**工作目錄的 `AGENTS.md`；實測未加 `--add-dir` 時，agy 完全退回它的原生 subagent 模型（`research`/`self`/`define_subagent`），Mode B **不生效**。必須 `agy --add-dir <工作目錄> -p ...`（且該目錄為 git repo 有幫助），agy 才會把 `AGENTS.md` 吃進它的 brain 上下文。互動/IDE 模式是否自動載入未在此測。
+- Antigravity 的原生角色是 `research`/`self`/自訂子代理，與 tao 的五角色是**概念對應**；agy 會以這些原生機制去「扮演」協議裡的角色，而非真有名為 Explorer 的子代理。
+- **版本敏感**：`AGENTS.md` + `.agents/skills/` 為 Antigravity 2.0 慣例；舊版用 `~/.gemini/antigravity/skills/`（本 repo README 安裝範例即舊式）。請依你的 Antigravity 版本選擇路徑。
 - Async Subagent Mode 為背景並行，注意成本與結果彙整。
 
 來源（查詢日 2026-05-30）：
@@ -137,6 +141,6 @@ AGENTS.md（受管區塊）                    → orchestrator 身份 + 調度�
 | :--- | :--- | :--- | :--- | :--- |
 | Claude Code | `CLAUDE.md` 或 `AGENTS.md` | skill 連結 | Task 工具 / `.claude/agents/*.md` | ✅ |
 | Codex CLI | `AGENTS.md`（近 cwd 覆寫，≤32 KiB） | Agent Skills | `.codex/agents/*.toml`，`max_depth=1` | ✅（並行彙整） |
-| Antigravity | repo 根 `AGENTS.md` | `.agents/skills/`（目錄式） | Async Subagent Mode | ✅（背景並行） |
+| Antigravity | 工作目錄 `AGENTS.md`（headless 需 `--add-dir`，✅2026-05-30 實測） | `.agents/skills/`（目錄式） | Async Subagent Mode | ✅（背景並行） |
 
 任一宿主若無原生子代理，退回 in-context 角色切換（同一 session 輪流戴帽子，無真隔離）。

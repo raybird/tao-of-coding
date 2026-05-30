@@ -39,4 +39,21 @@
 ## 結論
 這是 v5「agent 即 orchestrator、原生 subagent 調度」**第一次被真實運行證明可行**——一個真任務、三個真子代理、完整的 TDD + 審查 + 驗證迴圈、可驗證的產出。先前評析裡「核心編排能力從未被真實運行證明」的最大缺口，至此有了第一個反例。
 
-**下一步**：更大的多任務計畫（真正壓測 subagent-driven-development 的連續執行）、以及在 Codex / Antigravity 重跑同一流程，驗證跨宿主的可攜性。
+**下一步**：更大的多任務計畫（真正壓測 subagent-driven-development 的連續執行）、以及在 Codex 重跑同一流程。Antigravity 已先做完模式 B 的跨宿主驗證（見下附錄）。
+
+---
+
+## 附錄：Antigravity（agy v1.0.3）跨宿主模式 B 驗證（2026-05-30）
+
+**目的**：驗證設計文件的 open question——「宿主是否真的讀取並依 `AGENTS.md` 受管區塊以 orchestrator 身分運作」——在第二個獨立宿主（Antigravity，非 Claude Code）上是否成立。手法：隔離暫存 workspace 裝好受管區塊，用 `agy -p`（headless）跑「只路由、不執行」的 prompt 觀察。
+
+**過程與發現（含一個有價值的假陰性）**
+1. 第一次未加 `--add-dir`：agy **完全沒讀到** AGENTS.md，退回原生 subagent 模型（`research`/`self`/`define_subagent`）作答 → 看似 Mode B 無效。
+2. 探針確認「沒有看到」AGENTS.md 內容 → 懷疑載入條件。
+3. 補上 `git init` + `--add-dir <ws>` 後重測：agy **確實載入** AGENTS.md/GEMINI.md，正確讀出「Tao of Coding — Orchestrator 協議」與 5 個角色。第一次是**假陰性**（缺 `--add-dir`）。
+4. 以正確設定重跑路由題：agy **完整採納協議**——自稱「以 Orchestrator（統籌者）身分運作」、列出 5 個 tao 角色、把任務**路由到 Fixer + systematic-debugging**，並**逐字引用受管區塊的調度準則**「以『追查根因』為主 → 優先 systematic-debugging，不得先給修補方案」。
+
+**結論**
+- ✅ **模式 B 在 Antigravity 上可運作**：受管區塊被讀取後，orchestrator 身分、角色班底、路由準則都被正確採納——這是模式 B 在**第二個獨立宿主**上的確認，不再只是單一宿主現象。
+- ⚠️ **實測 gotcha**：`agy -p` headless 模式**不自動載入** workspace AGENTS.md，必須 `--add-dir`；否則退回原生模型、Mode B 靜默失效。此細節已回寫 `docs/host-integration.md`。
+- 限制：本次只測 headless `-p`，且止於「路由觀察」（未讓它實際派 subagent 執行）；互動/IDE 模式與完整執行未測。
