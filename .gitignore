@@ -12,3 +12,4 @@ moltbot-lite/
 *.db-wal
 mcp-memory-libsql.db
 .tao/
+.tao-ref

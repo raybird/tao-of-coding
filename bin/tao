@@ -16,6 +16,7 @@ BIN_DIR_SELF="$(cd "$(dirname "$_self")" && pwd)"
 TAO_HOME="$(cd "$BIN_DIR_SELF/.." && pwd)"
 INSTALL_ORCH="$TAO_HOME/skills/tao-of-opencode/scripts/install-orchestrator.sh"
 SKILL_SRC="$TAO_HOME/skills/tao-of-opencode"
+INSTALL_URL="https://raw.githubusercontent.com/raybird/tao-of-coding/main/install.sh"
 
 usage() {
   cat <<'USAGE'
@@ -110,11 +111,24 @@ cmd_link() {
 }
 
 cmd_version() {
-  git -C "$TAO_HOME" describe --tags --always 2>/dev/null || echo "unknown"
+  if [[ -d "$TAO_HOME/.git" ]]; then
+    git -C "$TAO_HOME" describe --tags --always 2>/dev/null && return 0
+  fi
+  if [[ -f "$TAO_HOME/.tao-ref" ]]; then
+    cat "$TAO_HOME/.tao-ref"
+  else
+    echo "unknown"
+  fi
 }
 
 cmd_upgrade() {
-  git -C "$TAO_HOME" pull --ff-only
+  if [[ -d "$TAO_HOME/.git" ]]; then
+    git -C "$TAO_HOME" pull --ff-only
+  else
+    # tarball 安裝：重抓 install.sh 重新下載解壓（不需 git）。
+    echo "重新下載最新版…"
+    curl -fsSL "$INSTALL_URL" | bash
+  fi
   echo "tao 現為：$(cmd_version)"
 }
 

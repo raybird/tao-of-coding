@@ -9,10 +9,10 @@
 
 ## 🚀 快速開始
 
-純 bash，需 `git`（Windows 需 WSL / git-bash）：
+純 bash，需 `curl` 與 `tar`（不需 git；Windows 需 WSL / git-bash）：
 
 ```bash
-# 1. 一行安裝，全域取得 tao 指令
+# 1. 一行安裝，全域取得 tao 指令（直接下載解壓，不 clone）
 curl -fsSL https://raw.githubusercontent.com/raybird/tao-of-coding/main/install.sh | bash
 
 # 2. 在你的專案資料夾啟用
@@ -177,7 +177,8 @@ assess-models.sh --tier ?   →   評估新模型
 | 工具 | 用途 | 安裝確認 |
 | :--- | :--- | :--- |
 | **Bash** | 執行維護腳本（`install-orchestrator` / `sync-superpowers` / `assess-models` 等）。 | `bash --version` |
-| **Git** | 同步上游 superpowers 技能；`install.sh` / `tao upgrade` 取得與升級內容。 | `git --version` |
+| **curl + tar** | `install.sh` / `tao upgrade` 下載解壓內容（取代 git clone）。 | `curl --version` |
+| **Git** | 選用：同步上游 superpowers 技能、維護者 clone。 | `git --version` |
 | **tao CLI** | 選用：全域入口（`tao enable` / `upgrade` 等），由 `install.sh` 安裝。 | `tao version` |
 | **OpenCode CLI** | 選用：僅 `assess-models.sh` 評估模型時需要。 | `opencode --version` |
 
@@ -200,7 +201,7 @@ curl -fsSL https://raw.githubusercontent.com/raybird/tao-of-coding/main/install.
 > bash /tmp/tao-install.sh
 > ```
 
-安裝器會把內容放到 `~/.local/share/tao-of-coding`、把 `tao` 連進 `~/.local/bin`。若 `~/.local/bin` 不在 `PATH`，依提示加一行到你的 shell rc。
+安裝器會下載 tarball 解壓到 `~/.local/share/tao-of-coding`、把 `tao` 連進 `~/.local/bin`。若 `~/.local/bin` 不在 `PATH`，依提示加一行到你的 shell rc。升級 `tao upgrade` 會重抓最新 tarball。
 
 ### 在任意專案資料夾啟用
 
