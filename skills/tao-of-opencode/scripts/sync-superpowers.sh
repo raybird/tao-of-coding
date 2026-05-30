@@ -97,7 +97,12 @@ IMPORT_DATE="$(date +%F)"
 mkdir -p "$STAGE_DIR"
 
 for skill in "${SELECTED_SKILLS[@]}"; do
-  src="$UPSTREAM_DIR/$skill"
+  # 佈局偵測：v5+ 上游把技能放在 skills/<skill>/；v4 及更早為 <skill>/。
+  if [[ -f "$UPSTREAM_DIR/skills/$skill/SKILL.md" ]]; then
+    src="$UPSTREAM_DIR/skills/$skill"
+  else
+    src="$UPSTREAM_DIR/$skill"
+  fi
   dst="$STAGE_DIR/$skill"
 
   if [[ ! -f "$src/SKILL.md" ]]; then
