@@ -25,7 +25,8 @@
 ## 1. Claude Code
 
 ### 安裝啟用
-- **角色身份（skill）**：把 `skills/tao-of-opencode` 連結進 Claude Code 的 skills（`npx skill-linker` 或手動 symlink）。
+- **一鍵（推薦）**：`tao link && tao enable`——`enable` 會偵測既有 `CLAUDE.md` 優先寫入。底層仍是下方 `install-orchestrator.sh`。
+- **角色身份（skill）**：把 `skills/tao-of-opencode` 連結進 Claude Code 的 skills（`tao link` / `npx skill-linker` 或手動 symlink）。
 - **根身份（模式 B）**：把受管區塊寫進專案 `CLAUDE.md`（Claude Code 預設讀取）或 `AGENTS.md`：
   ```bash
   bash skills/tao-of-opencode/scripts/install-orchestrator.sh --target CLAUDE.md
@@ -57,6 +58,7 @@
 > **✅ 已實測（2026-05-30，`codex` v0.135.0，`codex exec --sandbox read-only`）**：把受管區塊寫進工作目錄 `AGENTS.md` 後，`codex exec` **自動從 cwd 載入**（無需任何額外旗標），並**完整採納本協議**——自稱「以 orchestrator（統籌者）身分運作」、列出 5 個 tao 角色、把「測試失敗找根因」**路由到 Fixer + systematic-debugging**、逐字引用調度準則。**三宿主中 headless 模式最乾淨**（不像 Antigravity headless 需 `--add-dir`）。詳見 `docs/case-studies/2026-05-30-orchestration-dogfood.md`。
 
 ### 安裝啟用
+- **一鍵（推薦）**：`tao link && tao enable`（新資料夾預設寫 `AGENTS.md`）。底層仍是下方 `install-orchestrator.sh`。
 - **根身份（模式 B）**：Codex 會把 `AGENTS.md` 從 repo 根往下串接，**越接近工作目錄者優先覆寫**，總大小上限 `project_doc_max_bytes`（預設 32 KiB；本受管區塊很小，無虞）。寫入 agent 實際工作目錄那份：
   ```bash
   bash skills/tao-of-opencode/scripts/install-orchestrator.sh --target AGENTS.md
@@ -101,6 +103,7 @@ AGENTS.md（受管區塊）      → 宣告 orchestrator 身份 + 路由準則
 > **✅ 已實測（2026-05-30，`agy` v1.0.3）**：把受管區塊寫進工作目錄的 `AGENTS.md` 並以 `agy --add-dir <ws>` 載入後，agy **完整採納本協議**——自稱「以 Orchestrator（統籌者）身分運作」、正確列出 5 個 tao 角色、把「測試失敗找根因」**路由到 Fixer + systematic-debugging**，並逐字引用受管區塊的調度準則。Mode B 在 Antigravity 上**可運作**。詳見 `docs/case-studies/2026-05-30-orchestration-dogfood.md`。
 
 ### 安裝啟用
+- **一鍵（推薦）**：`tao link && tao enable`（新資料夾預設寫 `AGENTS.md`）。底層仍是下方 `install-orchestrator.sh`。
 - **根身份（模式 B）**：把受管區塊寫進 Antigravity 工作目錄的 `AGENTS.md`：
   ```bash
   bash skills/tao-of-opencode/scripts/install-orchestrator.sh --target AGENTS.md
