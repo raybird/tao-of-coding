@@ -131,3 +131,70 @@ prepend_constitution() {
   run bash "$SCRIPT" --target "$TARGET" --position sideways
   [ "$status" -ne 0 ]
 }
+
+@test "--check：已安裝且最新 → exit 0" {
+  bash "$SCRIPT" --target "$TARGET"
+  run bash "$SCRIPT" --target "$TARGET" --check
+  [ "$status" -eq 0 ]
+}
+
+@test "--check：改 skill-ref 造成過時 → exit 1（並印「過時」）" {
+  bash "$SCRIPT" --target "$TARGET" --skill-ref "OLD/path"
+  run bash "$SCRIPT" --target "$TARGET" --check --skill-ref "NEW/path"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"過時"* ]]
+}
+
+@test "--check：未安裝（無區塊）→ exit 2" {
+  printf '只有手寫內容\n' > "$TMP/plain.md"
+  run bash "$SCRIPT" --target "$TMP/plain.md" --check
+  [ "$status" -eq 2 ]
+}
+
+@test "--check：目標檔不存在 → exit 2" {
+  run bash "$SCRIPT" --target "$TMP/nonexistent.md" --check
+  [ "$status" -eq 2 ]
+}
+
+@test "--check 為唯讀：執行前後檔案內容不變，且不建備份" {
+  bash "$SCRIPT" --target "$TARGET" --skill-ref "OLD/path"
+  cp "$TARGET" "$TMP/before"
+  before_count="$(ls "$TMP" | wc -l)"
+  # 即便偵測為過時也不可改檔
+  run bash "$SCRIPT" --target "$TARGET" --check --skill-ref "NEW/path"
+  [ "$status" -eq 1 ]
+  diff "$TMP/before" "$TARGET"
+  after_count="$(ls "$TMP" | wc -l)"
+  [ "$before_count" -eq "$after_count" ]
+}
+
+@test "--check 印人類可讀狀態：最新" {
+  bash "$SCRIPT" --target "$TARGET"
+  run bash "$SCRIPT" --target "$TARGET" --check
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"最新"* ]]
+  [[ "$output" == *"$TARGET"* ]]
+}
+
+@test "--check 最新路徑也是唯讀：不改檔、不建備份" {
+  bash "$SCRIPT" --target "$TARGET"
+  cp "$TARGET" "$TMP/before"
+  before_count="$(ls "$TMP" | wc -l)"
+  run bash "$SCRIPT" --target "$TARGET" --check
+  [ "$status" -eq 0 ]
+  diff "$TMP/before" "$TARGET"
+  after_count="$(ls "$TMP" | wc -l)"
+  [ "$before_count" -eq "$after_count" ]
+}
+
+@test "--check 與 --remove 衝突 → 報錯 exit 1" {
+  bash "$SCRIPT" --target "$TARGET"
+  run bash "$SCRIPT" --target "$TARGET" --check --remove
+  [ "$status" -eq 1 ]
+}
+
+@test "--check 與 --dry-run 衝突 → 報錯 exit 1" {
+  bash "$SCRIPT" --target "$TARGET"
+  run bash "$SCRIPT" --target "$TARGET" --check --dry-run
+  [ "$status" -eq 1 ]
+}

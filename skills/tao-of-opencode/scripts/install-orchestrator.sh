@@ -18,6 +18,9 @@
 #                          僅在目標尚無受管區塊時生效；已有標記則就地替換、不挪位置。
 #                          Codex 等「越後面優先」宿主若要專案規則覆寫本協議，用 prepend。
 #   --remove               移除受管區塊（卸載），標記外內容保留
+#   --check                唯讀檢查受管區塊狀態（不寫檔、不建備份）。
+#                          exit 0=最新、1=過時、2=未安裝或目標不存在。
+#                          不可與 --remove / --dry-run 併用。
 #   --dry-run              預覽 diff，不寫檔
 #   -h, --help             顯示說明
 set -euo pipefail
@@ -27,6 +30,7 @@ usage() {
 Usage:
   install-orchestrator.sh [--target <path>] [--skill-ref <path>]
                           [--position append|prepend] [--remove] [--dry-run]
+  install-orchestrator.sh --check [--target <path>] [--skill-ref <path>]
 
 Examples:
   # 預覽將寫入 ./AGENTS.md 的內容
@@ -40,6 +44,9 @@ Examples:
 
   # 移除受管區塊
   install-orchestrator.sh --target workspace/AGENTS.md --remove
+
+  # 唯讀檢查狀態（exit 0=最新、1=過時、2=未安裝）
+  install-orchestrator.sh --target workspace/AGENTS.md --check
 USAGE
 }
 
@@ -57,6 +64,7 @@ SKILL_REF="skills/tao-of-opencode/references"
 POSITION="append"
 DRY_RUN=0
 REMOVE=0
+CHECK=0
 
 while (($#)); do
   case "$1" in
@@ -80,6 +88,10 @@ while (($#)); do
       ;;
     --remove)
       REMOVE=1
+      shift
+      ;;
+    --check)
+      CHECK=1
       shift
       ;;
     --dry-run)
@@ -186,6 +198,28 @@ prepend_block() {
   printf '\n' >> "$CANDIDATE"
   cat "$TARGET" >> "$CANDIDATE"
 }
+
+# ── --check：唯讀狀態檢查（絕不寫檔、不建備份）────────────────────
+if [[ "$CHECK" -eq 1 ]]; then
+  if [[ "$REMOVE" -eq 1 || "$DRY_RUN" -eq 1 ]]; then
+    fail "E_FLAG_CONFLICT" "--check 不可與 --remove / --dry-run 併用。"
+  fi
+  if [[ ! -f "$TARGET" ]]; then
+    echo "未安裝（目標不存在）：$TARGET"
+    exit 2
+  fi
+  if ! has_markers; then
+    echo "未安裝（無受管區塊）：$TARGET"
+    exit 2
+  fi
+  replace_block
+  if cmp -s "$CANDIDATE" "$TARGET"; then
+    echo "最新：$TARGET"
+    exit 0
+  fi
+  echo "過時：$TARGET"
+  exit 1
+fi
 
 # ── 組出 CANDIDATE ───────────────────────────────────────────────
 if [[ "$REMOVE" -eq 1 ]]; then

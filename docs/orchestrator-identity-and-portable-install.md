@@ -127,7 +127,7 @@ root `SKILL.md` 就是那張「你是 orchestrator」的委任狀；角色卡是
 
 - **根身份常駐**，每次 agent run 都讀得到，不靠 runtime 包裝。
 - 沿用 GitNexus 的冪等寫法：有標記就替換、沒有就 append、標記外不碰。
-- **已實作**：`skills/tao-of-opencode/scripts/install-orchestrator.sh`（冪等／非破壞／`--remove`／`--dry-run`，預設目標 `./AGENTS.md`、可 `--target` 覆寫）。
+- **已實作**：`skills/tao-of-opencode/scripts/install-orchestrator.sh`（冪等／非破壞／`--remove`／`--dry-run`／`--check`／`--position`，預設目標 `./AGENTS.md`、可 `--target` 覆寫）。`--check` 為唯讀狀態檢查（exit 0=最新／1=過時／2=未安裝），供 CI 或宿主安裝腳本判讀。
 - 適合：任何希望 orchestrator 常駐的宿主（如 TeleNexus）。
 
 ### 分工原則

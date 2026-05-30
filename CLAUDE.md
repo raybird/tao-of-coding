@@ -93,6 +93,9 @@ bash skills/tao-of-opencode/scripts/install-orchestrator.sh --target workspace/A
 
 # 卸載（移除區塊，標記外手寫內容保留）
 bash skills/tao-of-opencode/scripts/install-orchestrator.sh --target workspace/AGENTS.md --remove
+
+# 唯讀檢查狀態（exit 0=最新／1=過時／2=未安裝；供 CI 判讀）
+bash skills/tao-of-opencode/scripts/install-orchestrator.sh --target workspace/AGENTS.md --check
 ```
 受管區塊以 `<!-- tao:start -->` / `<!-- tao:end -->` 包夾，只放名冊摘要與調度準則；全文角色卡永遠留在 `skills/`。
 

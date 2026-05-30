@@ -72,6 +72,7 @@
 -   [Tao of OpenCode Protocol](skills/tao-of-opencode/SKILL.md)
 -   [Orchestrator 身份確立與可攜安裝設計](docs/orchestrator-identity-and-portable-install.md)
 -   [宿主整合指南（Claude Code / Codex / Antigravity）](docs/host-integration.md)
+-   [Case Study：第一次真實 orchestration 運行](docs/case-studies/2026-05-30-orchestration-dogfood.md)
 -   [Tao x Superpowers 操作指引](docs/superpowers_playbook.md)
 -   [SemVer 版本決策樹](docs/semver_decision_tree.md)
 -   [Release Note 模板](docs/release_note_template.md)
