@@ -7,6 +7,26 @@
 
 ---
 
+## 🚀 快速開始
+
+純 bash，需 `git`（Windows 需 WSL / git-bash）：
+
+```bash
+# 1. 一行安裝，全域取得 tao 指令
+curl -fsSL https://raw.githubusercontent.com/raybird/tao-of-coding/main/install.sh | bash
+
+# 2. 在你的專案資料夾啟用
+cd ~/projects/your-project
+tao link        # 把 tao-of-opencode skill 連進宿主（首次）
+tao enable      # 寫入 orchestrator 受管區塊（自動偵測 CLAUDE.md / AGENTS.md）
+```
+
+完成後，你的 agent 讀取宿主檔即以 orchestrator 身分運作。升級用 `tao upgrade`、卸載用 `tao remove`。
+
+詳細選項、手動安裝與底層腳本見 [〈安裝配置〉](#安裝配置-installation)。
+
+---
+
 ## 簡介
 
 這是一套專為 AI 代理設計的**多代理協作框架 (Multi-Agent Orchestration Framework)**，將開發任務的混亂轉化為有條不紊的秩序。
