@@ -69,7 +69,7 @@ bash skills/tao-of-opencode/scripts/assess-models.sh
 bash skills/tao-of-opencode/scripts/sync-superpowers.sh <commit-or-tag> --dry-run
 
 # 執行同步
-bash skills/tao-of-opencode/scripts/sync-superpowers.sh v4.2.0
+bash skills/tao-of-opencode/scripts/sync-superpowers.sh v5.1.0
 ```
 版本追蹤：`skills/tao-of-opencode/references/superpowers/SOURCE.md`
 
