@@ -85,6 +85,33 @@ teardown() {
   [ "$output" = "$REPO_ROOT" ]
 }
 
+@test "link 指定目錄建立 symlink 指向 skill 來源" {
+  run bash "$TAO" link "$TMP/skills"
+  [ "$status" -eq 0 ]
+  [ -L "$TMP/skills/tao-of-opencode" ]
+  [ "$(readlink "$TMP/skills/tao-of-opencode")" = "$REPO_ROOT/skills/tao-of-opencode" ]
+}
+
+@test "link 偵測到宿主時自動連結（建立 ~/.gemini/antigravity 後）" {
+  mkdir -p "$TMP/.gemini/antigravity"
+  run bash "$TAO" link
+  [ "$status" -eq 0 ]
+  [ -L "$TMP/.gemini/antigravity/skills/tao-of-opencode" ]
+}
+
+@test "link 重跑冪等（不巢狀、仍為 symlink）" {
+  bash "$TAO" link "$TMP/skills"
+  run bash "$TAO" link "$TMP/skills"
+  [ "$status" -eq 0 ]
+  [ -L "$TMP/skills/tao-of-opencode" ]
+  [ ! -e "$TMP/skills/tao-of-opencode/tao-of-opencode" ]
+}
+
+@test "link 無宿主且未指定目錄 exit 1" {
+  run bash "$TAO" link
+  [ "$status" -eq 1 ]
+}
+
 @test "未知子指令 exit 1" {
   run bash "$TAO" frobnicate
   [ "$status" -eq 1 ]

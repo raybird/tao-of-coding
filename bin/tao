@@ -25,7 +25,9 @@ usage() {
   enable [--target <p>] [--dry-run] [--remove] [--check]
                   在當前資料夾寫入 orchestrator 受管區塊。
                   宿主檔偵測：--target > 既有 CLAUDE.md > 既有 AGENTS.md > 建立 AGENTS.md。
-  link            把 tao-of-opencode skill 連結進宿主（委派 npx skill-linker）。
+  link [<skills-dir>]
+                  把 tao-of-opencode skill symlink 進宿主 skills 目錄。
+                  指定 <skills-dir> 則連到該處；否則連進已偵測到的宿主。
   upgrade         更新 tao（git pull）並顯示版本。
   check           檢查當前資料夾受管區塊狀態（exit 0=最新/1=過時/2=未安裝）。
   remove          移除當前資料夾受管區塊。
@@ -73,16 +75,36 @@ cmd_enable() {
   done
   if [[ "$only_write" -eq 1 ]] && ! skill_linked; then
     echo "提示：尚未偵測到 tao-of-opencode skill 連結；角色卡需 skill 連結才載得到。" >&2
-    echo "      執行：tao link（或 npx skill-linker）" >&2
+    echo "      執行：tao link" >&2
   fi
 }
 
 cmd_link() {
-  if command -v npx >/dev/null 2>&1; then
-    npx skill-linker
-  else
-    echo "找不到 npx。請手動 symlink，例如：" >&2
-    echo "  ln -s \"$SKILL_SRC\" ~/.gemini/antigravity/skills/tao-of-opencode" >&2
+  # 指定目標 skills 目錄 → 直接連到該處。
+  if [[ $# -ge 1 ]]; then
+    mkdir -p "$1"
+    ln -sfn "$SKILL_SRC" "$1/tao-of-opencode"
+    echo "已連結：$1/tao-of-opencode -> $SKILL_SRC"
+    return 0
+  fi
+  # 否則連進「父目錄已存在（＝該宿主已安裝）」的已知 skills 目錄。
+  local d parent linked=0
+  for d in \
+    "$HOME/.claude/skills" \
+    "$HOME/.gemini/antigravity/skills" \
+    "$HOME/.codeium/windsurf/skills"; do
+    parent="$(dirname "$d")"
+    if [[ -d "$parent" ]]; then
+      mkdir -p "$d"
+      ln -sfn "$SKILL_SRC" "$d/tao-of-opencode"
+      echo "已連結：$d/tao-of-opencode -> $SKILL_SRC"
+      linked=1
+    fi
+  done
+  if [[ "$linked" -eq 0 ]]; then
+    echo "未偵測到已安裝的宿主。請指定目標 skills 目錄：" >&2
+    echo "  tao link <宿主的 skills 目錄>" >&2
+    echo "例如：tao link ~/.gemini/antigravity/skills" >&2
     return 1
   fi
 }

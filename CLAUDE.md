@@ -58,7 +58,7 @@ skills/tao-of-opencode/
 tao enable     # 當前資料夾寫入受管區塊（偵測 CLAUDE.md > AGENTS.md > 建 AGENTS.md）
 tao check      # 狀態檢查（exit 0/1/2）
 tao remove     # 卸載受管區塊
-tao link       # 連 skill 進宿主（委派 npx skill-linker）
+tao link       # symlink skill 進宿主（自動偵測，或 tao link <skills-dir>）
 tao upgrade    # 升級 tao 本體（git pull）
 ```
 
@@ -89,11 +89,14 @@ bash skills/tao-of-opencode/scripts/sync-superpowers.sh v5.1.0
 
 ### 安裝技能連結
 ```bash
-# 互動式（推薦）
-npx skill-linker
+# 推薦：自動偵測已安裝宿主並 symlink
+tao link
 
-# 手動連結範例
-ln -s ~/Documents/AgentSkills/tao-of-coding/skills/tao-of-opencode ~/.gemini/antigravity/skills/tao-of-opencode
+# 指定宿主 skills 目錄
+tao link ~/.gemini/antigravity/skills
+
+# 手動連結範例（不經 tao）
+ln -s ~/.local/share/tao-of-coding/skills/tao-of-opencode ~/.gemini/antigravity/skills/tao-of-opencode
 ```
 
 ### 確立 orchestrator 根身份（模式 B — Persistent）

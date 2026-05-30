@@ -57,4 +57,4 @@ case ":$PATH:" in
 esac
 
 echo ""
-echo "安裝完成。下一步：cd 你的專案 && tao enable（首次可先 tao link / npx skill-linker）"
+echo "安裝完成。下一步：cd 你的專案 && tao enable（首次可先 tao link 連結 skill）"

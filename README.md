@@ -206,7 +206,7 @@ curl -fsSL https://raw.githubusercontent.com/raybird/tao-of-coding/main/install.
 
 ```bash
 cd ~/projects/your-project
-tao link        # 首次：把 tao-of-opencode skill 連進宿主（委派 npx skill-linker）
+tao link        # 首次：把 tao-of-opencode skill symlink 進已偵測到的宿主
 tao enable      # 偵測/建立 AGENTS.md（或既有 CLAUDE.md），寫入 orchestrator 受管區塊
 ```
 
@@ -233,12 +233,14 @@ bash "$S" --target workspace/AGENTS.md       # 寫入宿主實際讀的那份 AG
 bash "$S" --target workspace/AGENTS.md --remove   # 卸載
 ```
 
-skill 連結也可不經 `tao link`，用 `npx skill-linker` 或手動 symlink：
+skill 連結也可不經 `tao link`，手動 symlink（依宿主調整 skills 目錄）：
 
 ```bash
 mkdir -p ~/.gemini/antigravity/skills
 ln -s ~/.local/share/tao-of-coding/skills/tao-of-opencode ~/.gemini/antigravity/skills/tao-of-opencode
 ```
+
+或指定目標目錄交給 `tao link`：`tao link ~/.gemini/antigravity/skills`。
 
 受管區塊以 `<!-- tao:start -->` / `<!-- tao:end -->` 包夾，只放「名冊摘要 + 調度準則」；全文角色卡永遠留在 `skills/`，標記以外的內容不會被動到。每次寫入前會建立時間戳備份。
 
