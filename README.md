@@ -81,8 +81,9 @@
 
 ## 已導入 Superpowers 技能 (Phase 1)
 
-目前已在 `skills/tao-of-opencode/references/superpowers/` 本地導入以下核心技能：
+目前已在 `skills/tao-of-opencode/references/superpowers/` 本地導入以下技能：
 
+角色技能（依任務路由給對應角色）：
 - `brainstorming`
 - `writing-plans`
 - `executing-plans`
@@ -91,6 +92,10 @@
 - `verification-before-completion`
 - `requesting-code-review`
 - `receiving-code-review`
+
+調度技能（orchestrator 自用，宿主有原生 subagent 時適用）：
+- `subagent-driven-development`
+- `dispatching-parallel-agents`
 
 推薦流程：先依 `skills/tao-of-opencode/SKILL.md` 做角色路由，再載入對應 `references/superpowers/<skill>/SKILL.md` 執行。
 

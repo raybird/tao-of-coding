@@ -58,6 +58,7 @@ Superpowers 的來源版本與導入時間，統一以 `skills/tao-of-opencode/r
 
 | 角色 | 主責技能 | 協作技能 |
 | :--- | :--- | :--- |
+| Orchestrator（你本體） | `subagent-driven-development`, `dispatching-parallel-agents`（宿主有原生 subagent 時） | - |
 | Oracle | `brainstorming`, `writing-plans` | - |
 | Fixer | `test-driven-development`, `systematic-debugging`, `verification-before-completion`, `receiving-code-review` | - |
 | Librarian | `requesting-code-review` | - |
@@ -76,6 +77,13 @@ Superpowers 的來源版本與導入時間，統一以 `skills/tao-of-opencode/r
 - 多步驟任務先回報「路由角色 + 將使用的技能」再動手。
 - 簡單、單步任務直接回答，不召集團隊。
 - **不再透過任何 shell 包裝或 opencode 子進程啟動**；角色委派一律走宿主原生機制或 in-context。
+
+### 調度技能（orchestrator 自用）
+
+以下兩個技能是「**如何委派**」本身的操作協議，由 orchestrator 自己引用。**僅在宿主有原生 subagent 時適用**（無原生機制時走 in-context，不適用）：
+
+- **`subagent-driven-development`**（`references/superpowers/subagent-driven-development/SKILL.md`）：執行多步驟計畫時，每個任務開一個全新 subagent，子代理不繼承你的 session 歷史；派完做兩階段審查（先比對 spec、再審 code quality）。同 session、連續執行。
+- **`dispatching-parallel-agents`**（`references/superpowers/dispatching-parallel-agents/SKILL.md`）：面對 2+ 個彼此獨立、無共享狀態的子任務時，一個問題 domain 一個 subagent 並行派發；任務相關或需共享狀態時不要用。
 
 ## 協作交付欄位定義 (Delivery Contract)
 

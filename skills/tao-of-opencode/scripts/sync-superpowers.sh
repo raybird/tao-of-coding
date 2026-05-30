@@ -73,6 +73,9 @@ SELECTED_SKILLS=(
   "verification-before-completion"
   "requesting-code-review"
   "receiving-code-review"
+  # orchestrator 自用的調度技能（宿主有原生 subagent 時適用）
+  "subagent-driven-development"
+  "dispatching-parallel-agents"
 )
 
 TMP_DIR="$(mktemp -d /tmp/tao-superpowers-sync.XXXXXX)"
