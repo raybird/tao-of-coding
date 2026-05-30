@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # install.sh — tao-of-coding curl|bash bootstrap 安裝器。
 #   curl -fsSL https://raw.githubusercontent.com/raybird/tao-of-coding/main/install.sh | bash
-# 行為冪等（重跑＝升級）。純 bash，需 git；Windows 需 WSL / git-bash。
+# 行為冪等（重跑＝升級）。直接下載 tarball 解壓，不需 git；只需 curl 與 tar。
+# （維護者若已 git clone，install.sh 偵測到 .git 會改用 git pull。）Windows 需 WSL / git-bash。
 set -euo pipefail
 
-REPO_URL="https://github.com/raybird/tao-of-coding.git"
+REPO_SLUG="raybird/tao-of-coding"
 DEFAULT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/tao-of-coding"
 BIN_DIR="$HOME/.local/bin"
 
@@ -34,12 +35,22 @@ fi
 
 if [[ "$LINK_ONLY" -ne 1 ]]; then
   if [[ -d "$TAO_HOME/.git" ]]; then
-    echo "更新既有安裝：$TAO_HOME"
+    # 維護者既有 git clone：用 git 更新，不重抓 tarball。
+    echo "偵測到 git clone，用 git 更新：$TAO_HOME"
     git -C "$TAO_HOME" pull --ff-only
   else
-    echo "下載到：$TAO_HOME"
+    # 直接下載 tarball 解壓（不需 git）。archive/<ref> 同時支援分支/標籤/commit。
+    tarball_url="https://github.com/$REPO_SLUG/archive/$REF.tar.gz"
+    echo "下載並解壓到：$TAO_HOME（$tarball_url）"
+    tmp="$(mktemp -d "${TMPDIR:-/tmp}/tao-dl.XXXXXX")"
+    curl -fsSL "$tarball_url" | tar -xz -C "$tmp"
+    extracted="$(find "$tmp" -mindepth 1 -maxdepth 1 -type d | head -n1)"
+    [[ -d "$extracted" ]] || { echo "解壓失敗：$tarball_url" >&2; rm -rf "$tmp"; exit 1; }
+    rm -rf "$TAO_HOME"
     mkdir -p "$(dirname "$TAO_HOME")"
-    git clone --branch "$REF" "$REPO_URL" "$TAO_HOME"
+    mv "$extracted" "$TAO_HOME"
+    rm -rf "$tmp"
+    printf '%s\n' "$REF" > "$TAO_HOME/.tao-ref"
   fi
 fi
 
