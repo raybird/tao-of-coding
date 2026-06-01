@@ -47,3 +47,9 @@ teardown() {
   [ "$status" -eq 0 ]
   [ "$output" = "$REPO_ROOT" ]
 }
+
+@test "help mentions tarball/no clone path" {
+  run bash "$INSTALL" --help
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"tarball"* || "$output" == *"不需 git"* || "$output" == *"不 clone"* ]]
+}

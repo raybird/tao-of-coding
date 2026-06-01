@@ -59,7 +59,7 @@ tao enable     # 當前資料夾寫入受管區塊（預設 AGENTS.md；要寫 C
 tao check      # 狀態檢查（exit 0/1/2）
 tao remove     # 卸載受管區塊
 tao link       # symlink skill 進宿主（自動偵測，或 tao link <skills-dir>）
-tao upgrade    # 升級 tao 本體（git pull）
+tao upgrade    # 升級 tao 本體（tarball 安裝會重抓；既有 clone 才 git pull）
 ```
 
 `tao enable` 等同呼叫下方 `install-orchestrator.sh`，差別在自動偵測宿主檔、用絕對路徑、免記腳本位置。

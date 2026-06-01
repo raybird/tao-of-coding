@@ -108,7 +108,7 @@ AGENTS.md（受管區塊）      → 宣告 orchestrator 身份 + 路由準則
   ```bash
   bash skills/tao-of-opencode/scripts/install-orchestrator.sh --target AGENTS.md
   ```
-- **角色身份（skill）**：Antigravity 的 Skill 為目錄式套件（`SKILL.md` + 資產），放 `.agents/skills/`——與本專案 `skills/tao-of-opencode/` 結構一致，可直接連結或複製進去。
+- **角色身份（skill）**：Antigravity 的 Skill 為目錄式套件（`SKILL.md` + 資產），新版建議放 `.agents/skills/`。可用 `tao link .agents/skills` 直接連結；舊版或個人全域安裝可改用 `tao link ~/.gemini/antigravity/skills`。
 
 ### 委派如何對應
 - **原生子代理（首選）**：**Async Subagent Mode** 由 manager agent 把任務拆成子任務，spawn 多個專長子代理並行（寫碼／跑指令／測試各一），完成後回傳 diff。Skill 內可含 nested subagent 定義。

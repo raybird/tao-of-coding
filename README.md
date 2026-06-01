@@ -21,6 +21,8 @@ tao link        # 把 tao-of-opencode skill 連進宿主（首次）
 tao enable      # 寫入 orchestrator 受管區塊（預設 AGENTS.md）
 ```
 
+宿主目標檔提醒：`tao enable` 預設寫 `AGENTS.md`，適合 Codex / Antigravity 等 host-agnostic 流程；Claude Code 專案建議改用 `tao enable --target CLAUDE.md`。
+
 完成後，你的 agent 讀取宿主檔即以 orchestrator 身分運作。升級用 `tao upgrade`、卸載用 `tao remove`。
 
 詳細選項、手動安裝與底層腳本見 [〈安裝配置〉](#安裝配置-installation)。
@@ -188,7 +190,7 @@ assess-models.sh --tier ?   →   評估新模型
 
 ### 快速安裝（推薦）
 
-一條指令裝好，全域取得 `tao` 指令（純 bash，需 `git`；Windows 需 WSL / git-bash）：
+一條指令裝好，全域取得 `tao` 指令（純 bash，需 `curl` 與 `tar`；不需 git clone；Windows 需 WSL / git-bash）：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/raybird/tao-of-coding/main/install.sh | bash
@@ -217,7 +219,7 @@ tao enable      # 預設寫入 AGENTS.md（要寫 CLAUDE.md 用 --target CLAUDE.
 tao enable --dry-run   # 預覽不寫檔
 tao check              # 檢查狀態（exit 0=最新/1=過時/2=未安裝）
 tao remove             # 卸載受管區塊
-tao upgrade            # 升級 tao 本體（git pull）
+tao upgrade            # 升級 tao 本體（tarball 安裝會重抓；既有 clone 才 git pull）
 ```
 
 `tao enable` 預設寫入 `AGENTS.md`（host-agnostic）：未給 `--target` 時一律建立/沿用當前資料夾的 `AGENTS.md`；要寫 Claude Code 的 `CLAUDE.md` 用 `tao enable --target CLAUDE.md`。它等同呼叫下方 `install-orchestrator.sh`，差別在免記腳本路徑、用絕對路徑。
@@ -241,7 +243,13 @@ mkdir -p ~/.gemini/antigravity/skills
 ln -s ~/.local/share/tao-of-coding/skills/tao-of-opencode ~/.gemini/antigravity/skills/tao-of-opencode
 ```
 
-或指定目標目錄交給 `tao link`：`tao link ~/.gemini/antigravity/skills`。
+或指定目標目錄交給 `tao link`：
+
+```bash
+tao link .agents/skills
+tao link ~/.claude/skills
+tao link ~/.gemini/antigravity/skills
+```
 
 受管區塊以 `<!-- tao:start -->` / `<!-- tao:end -->` 包夾，只放「名冊摘要 + 調度準則」；全文角色卡永遠留在 `skills/`，標記以外的內容不會被動到。每次寫入前會建立時間戳備份。
 
@@ -315,4 +323,4 @@ CI 三個 job：`bash -n` + `shellcheck`（lint）、`bats`（安裝器冪等/�
 
 ---
 
-*版本更新日期：2026-05-28*
+*版本更新日期：2026-06-01*

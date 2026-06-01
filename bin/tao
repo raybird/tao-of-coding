@@ -30,7 +30,7 @@ usage() {
   link [<skills-dir>]
                   把 tao-of-opencode skill symlink 進宿主 skills 目錄。
                   指定 <skills-dir> 則連到該處；否則連進已偵測到的宿主。
-  upgrade         更新 tao（git pull）並顯示版本。
+  upgrade         更新 tao；tarball 安裝會重新下載，既有 git clone 才 git pull。
   check           檢查當前資料夾受管區塊狀態（exit 0=最新/1=過時/2=未安裝）。
   remove          移除當前資料夾受管區塊。
   version         顯示版本（git describe）。
@@ -47,6 +47,8 @@ detect_target() {
 skill_linked() {
   local d
   for d in \
+    "$PWD/.agents/skills/tao-of-opencode" \
+    "$HOME/.agents/skills/tao-of-opencode" \
     "$HOME/.claude/skills/tao-of-opencode" \
     "$HOME/.gemini/antigravity/skills/tao-of-opencode" \
     "$HOME/.codeium/windsurf/skills/tao-of-opencode"; do
@@ -91,6 +93,7 @@ cmd_link() {
   # 否則連進「父目錄已存在（＝該宿主已安裝）」的已知 skills 目錄。
   local d parent linked=0
   for d in \
+    "$PWD/.agents/skills" \
     "$HOME/.claude/skills" \
     "$HOME/.gemini/antigravity/skills" \
     "$HOME/.codeium/windsurf/skills"; do
@@ -105,7 +108,10 @@ cmd_link() {
   if [[ "$linked" -eq 0 ]]; then
     echo "未偵測到已安裝的宿主。請指定目標 skills 目錄：" >&2
     echo "  tao link <宿主的 skills 目錄>" >&2
-    echo "例如：tao link ~/.gemini/antigravity/skills" >&2
+    echo "常見範例：" >&2
+    echo "  tao link .agents/skills" >&2
+    echo "  tao link ~/.claude/skills" >&2
+    echo "  tao link ~/.gemini/antigravity/skills" >&2
     return 1
   fi
 }

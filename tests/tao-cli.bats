@@ -118,6 +118,30 @@ teardown() {
   [ "$status" -eq 1 ]
 }
 
+@test "help describes upgrade without implying git is required" {
+  run bash "$TAO" help
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"upgrade"* ]]
+  [[ "$output" == *"tarball"* || "$output" == *"重新下載"* || "$output" == *"既有 clone"* ]]
+  [[ "$output" != *"更新 tao（git pull）"* ]]
+}
+
+@test "link 偵測到 .agents 時自動連結到 .agents/skills" {
+  mkdir -p "$TMP/.agents"
+  run bash "$TAO" link
+  [ "$status" -eq 0 ]
+  [ -L "$TMP/.agents/skills/tao-of-opencode" ]
+  [ "$(readlink "$TMP/.agents/skills/tao-of-opencode")" = "$REPO_ROOT/skills/tao-of-opencode" ]
+}
+
+@test "link 無宿主時提示常見 skills 目錄" {
+  run bash "$TAO" link
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"tao link <宿主的 skills 目錄>"* ]]
+  [[ "$output" == *".agents/skills"* ]]
+  [[ "$output" == *".claude/skills"* ]]
+}
+
 @test "未知子指令 exit 1" {
   run bash "$TAO" frobnicate
   [ "$status" -eq 1 ]

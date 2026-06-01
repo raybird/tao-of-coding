@@ -22,10 +22,34 @@ while (($#)); do
     --link-only) LINK_ONLY=1; shift ;;   # 跳過 clone/pull，只連結（測試 / 維護者用）
     -h|--help)
       echo "用法：install.sh [--dir <path>] [--ref <branch|tag>] [--uninstall] [--link-only]"
+      echo "預設以 GitHub tarball 下載安裝，不需 git clone；既有 .git 安裝才用 git pull。"
       exit 0 ;;
     *) echo "install.sh: 未知參數 '$1'" >&2; exit 1 ;;
   esac
 done
+
+require_cmd() {
+  command -v "$1" >/dev/null 2>&1 || {
+    echo "install.sh: 缺少必要工具 '$1'。請先安裝後再重跑。" >&2
+    exit 127
+  }
+}
+
+require_cmd mkdir
+require_cmd rm
+require_cmd ln
+
+if [[ "$UNINSTALL" -ne 1 ]]; then
+  require_cmd chmod
+  if [[ "$LINK_ONLY" -ne 1 ]]; then
+    require_cmd mktemp
+    require_cmd curl
+    require_cmd tar
+    require_cmd find
+    require_cmd head
+    require_cmd mv
+  fi
+fi
 
 if [[ "$UNINSTALL" -eq 1 ]]; then
   rm -f "$BIN_DIR/tao"
@@ -36,6 +60,7 @@ fi
 if [[ "$LINK_ONLY" -ne 1 ]]; then
   if [[ -d "$TAO_HOME/.git" ]]; then
     # 維護者既有 git clone：用 git 更新，不重抓 tarball。
+    require_cmd git
     echo "偵測到 git clone，用 git 更新：$TAO_HOME"
     git -C "$TAO_HOME" pull --ff-only
   else
