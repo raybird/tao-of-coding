@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to any host-agnostic coding agent (Codex / Antigravity / Claude Code 等) when working with code in this repository. 內容與 `CLAUDE.md` 同步維護。
 
 ## ⚠️ 最重要規則
 
