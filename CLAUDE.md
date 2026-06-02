@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **與 AGENTS.md 同步維護**：本檔內容與 `AGENTS.md`（host-agnostic 鏡像）為同一份規範的兩份載體。修改本檔的規範、架構或常用指令時，務必同步更新 `AGENTS.md`，避免 drift。
+
 ## ⚠️ 最重要規則
 
 **Git commit 訊息絕對不可包含 `Co-Authored-By: Claude` 或任何 AI 署名資訊。** 只寫功能描述，不附加任何尾行。
