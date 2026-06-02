@@ -103,6 +103,7 @@ tao enable                # 寫入 orchestrator 受管區塊（預設 AGENTS.md�
 -   [Tao x Superpowers 操作指引](docs/superpowers_playbook.md)
 -   [SemVer 版本決策樹](docs/semver_decision_tree.md)
 -   [Release Note 模板](docs/release_note_template.md)
+-   [Release SOP（發版流程）](docs/release-sop.md)
 -   [角色職能與技能對照表](docs/celestial_skill_mapping.md)
 -   [專案精神深度分析](docs/project-spirit-analysis.md)
 -   [模型維護 SOP](docs/model-maintenance-sop.md)
