@@ -15,11 +15,16 @@
 # 1. 一行安裝，全域取得 tao 指令（直接下載解壓，不 clone）
 curl -fsSL https://raw.githubusercontent.com/raybird/tao-of-coding/main/install.sh | bash
 
+# 若安裝後打 tao 得到 "command not found"，代表 ~/.local/bin 不在 PATH，先加上：
+export PATH="$HOME/.local/bin:$PATH"   # 並寫進 ~/.bashrc 或 ~/.zshrc 永久生效
+
 # 2. 在你的專案資料夾啟用
 cd ~/projects/your-project
-tao link        # 把 tao-of-opencode skill 連進宿主（首次）
-tao enable      # 寫入 orchestrator 受管區塊（預設 AGENTS.md）
+tao link .agents/skills   # 把 tao-of-opencode skill 連進宿主（首次；乾淨環境也適用）
+tao enable                # 寫入 orchestrator 受管區塊（預設 AGENTS.md）
 ```
+
+> `tao link` 不帶參數時會自動偵測已安裝的宿主（`~/.claude`、`~/.gemini/...` 等）；若是全新／乾淨環境尚未裝任何宿主，請明確指定目錄（如上方的 `.agents/skills`）。
 
 宿主目標檔提醒：`tao enable` 預設寫 `AGENTS.md`，適合 Codex / Antigravity 等 host-agnostic 流程；Claude Code 專案建議改用 `tao enable --target CLAUDE.md`。
 
@@ -203,15 +208,23 @@ curl -fsSL https://raw.githubusercontent.com/raybird/tao-of-coding/main/install.
 > bash /tmp/tao-install.sh
 > ```
 
-安裝器會下載 tarball 解壓到 `~/.local/share/tao-of-coding`、把 `tao` 連進 `~/.local/bin`。若 `~/.local/bin` 不在 `PATH`，依提示加一行到你的 shell rc。升級 `tao upgrade` 會重抓最新 tarball。
+安裝器會下載 tarball 解壓到 `~/.local/share/tao-of-coding`、把 `tao` 連進 `~/.local/bin`。若 `~/.local/bin` 不在 `PATH`（打 `tao` 出現 `command not found`），加一行到你的 shell rc：
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"   # 寫進 ~/.bashrc 或 ~/.zshrc 永久生效
+```
+
+升級 `tao upgrade` 會重抓最新 tarball。
 
 ### 在任意專案資料夾啟用
 
 ```bash
 cd ~/projects/your-project
-tao link        # 首次：把 tao-of-opencode skill symlink 進已偵測到的宿主
-tao enable      # 預設寫入 AGENTS.md（要寫 CLAUDE.md 用 --target CLAUDE.md）
+tao link .agents/skills   # 首次：把 tao-of-opencode skill symlink 進宿主（乾淨環境也適用）
+tao enable                # 預設寫入 AGENTS.md（要寫 CLAUDE.md 用 --target CLAUDE.md）
 ```
+
+> `tao link` 不帶參數時會自動偵測已安裝的宿主；全新／乾淨環境尚未裝任何宿主時，請像上面一樣明確指定目錄（如 `.agents/skills`），否則會報錯要你指定。
 
 常用：
 
