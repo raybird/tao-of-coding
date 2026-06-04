@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # install.sh — tao-of-coding curl|bash bootstrap 安裝器。
 #   curl -fsSL https://raw.githubusercontent.com/raybird/tao-of-coding/main/install.sh | bash
-# 行為冪等（重跑＝升級）。直接下載 tarball 解壓，不需 git；只需 curl 與 tar。
+# 行為冪等（重跑＝升級）。直接下載 tarball 解壓，不需 git；需 curl 或 wget，以及 tar。
 # （維護者若已 git clone，install.sh 偵測到 .git 會改用 git pull。）Windows 需 WSL / git-bash。
 set -euo pipefail
 
@@ -35,6 +35,18 @@ require_cmd() {
   }
 }
 
+download_file() {
+  local src="$1" dst="$2"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL -o "$dst" "$src"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q -O "$dst" "$src"
+  else
+    echo "install.sh: 缺少必要工具 'curl' 或 'wget'。請先安裝其中之一後再重跑。" >&2
+    exit 127
+  fi
+}
+
 require_cmd mkdir
 require_cmd rm
 require_cmd ln
@@ -43,7 +55,6 @@ if [[ "$UNINSTALL" -ne 1 ]]; then
   require_cmd chmod
   if [[ "$LINK_ONLY" -ne 1 ]]; then
     require_cmd mktemp
-    require_cmd curl
     require_cmd tar
     require_cmd find
     require_cmd head
@@ -68,12 +79,23 @@ if [[ "$LINK_ONLY" -ne 1 ]]; then
     tarball_url="https://github.com/$REPO_SLUG/archive/$REF.tar.gz"
     echo "下載並解壓到：$TAO_HOME（$tarball_url）"
     tmp="$(mktemp -d "${TMPDIR:-/tmp}/tao-dl.XXXXXX")"
-    curl -fsSL "$tarball_url" | tar -xz -C "$tmp"
+    cleanup() { rm -rf "$tmp"; }
+    trap cleanup EXIT
+    staging_payload="$tmp/tao-of-coding.tar.gz"
+    if ! download_file "$tarball_url" "$staging_payload"; then
+      echo "下載失敗：$tarball_url" >&2
+      exit 1
+    fi
+    if ! tar -xzf "$staging_payload" -C "$tmp"; then
+      echo "解壓失敗：$tarball_url" >&2
+      exit 1
+    fi
     extracted="$(find "$tmp" -mindepth 1 -maxdepth 1 -type d | head -n1)"
-    [[ -d "$extracted" ]] || { echo "解壓失敗：$tarball_url" >&2; rm -rf "$tmp"; exit 1; }
+    [[ -d "$extracted" ]] || { echo "解壓失敗：$tarball_url" >&2; exit 1; }
     rm -rf "$TAO_HOME"
     mkdir -p "$(dirname "$TAO_HOME")"
     mv "$extracted" "$TAO_HOME"
+    trap - EXIT
     rm -rf "$tmp"
     printf '%s\n' "$REF" > "$TAO_HOME/.tao-ref"
   fi

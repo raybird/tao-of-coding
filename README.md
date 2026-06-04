@@ -9,7 +9,7 @@
 
 ## 🚀 快速開始
 
-純 bash，需 `curl` 與 `tar`（不需 git；Windows 需 WSL / git-bash）：
+純 bash，需 `curl` 或 `wget`，以及 `tar`（不需 git；Windows 需 WSL / git-bash）：
 
 ```bash
 # 1. 一行安裝，全域取得 tao 指令（直接下載解壓，不 clone）
@@ -185,7 +185,7 @@ assess-models.sh --tier ?   →   評估新模型
 | 工具 | 用途 | 安裝確認 |
 | :--- | :--- | :--- |
 | **Bash** | 執行維護腳本（`install-orchestrator` / `sync-superpowers` / `assess-models` 等）。 | `bash --version` |
-| **curl + tar** | `install.sh` / `tao upgrade` 下載解壓內容（取代 git clone）。 | `curl --version` |
+| **curl/wget + tar** | `install.sh` / `tao upgrade` 下載解壓內容（取代 git clone）。 | `curl --version` 或 `wget --version` |
 | **Git** | 選用：同步上游 superpowers 技能、維護者 clone。 | `git --version` |
 | **tao CLI** | 選用：全域入口（`tao enable` / `upgrade` 等），由 `install.sh` 安裝。 | `tao version` |
 | **OpenCode CLI** | 選用：僅 `assess-models.sh` 評估模型時需要。 | `opencode --version` |
@@ -196,7 +196,7 @@ assess-models.sh --tier ?   →   評估新模型
 
 ### 快速安裝（推薦）
 
-一條指令裝好，全域取得 `tao` 指令（純 bash，需 `curl` 與 `tar`；不需 git clone；Windows 需 WSL / git-bash）：
+一條指令裝好，全域取得 `tao` 指令（純 bash，需 `curl` 或 `wget`，以及 `tar`；不需 git clone；Windows 需 WSL / git-bash）：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/raybird/tao-of-coding/main/install.sh | bash

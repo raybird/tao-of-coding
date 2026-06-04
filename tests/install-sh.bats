@@ -53,3 +53,80 @@ teardown() {
   [ "$status" -eq 0 ]
   [[ "$output" == *"tarball"* || "$output" == *"不需 git"* || "$output" == *"不 clone"* ]]
 }
+
+@test "tarball 安裝先下載到 staging 檔再解壓" {
+  unset TAO_HOME
+
+  mkdir -p "$TMP/src/tao-of-coding-main/bin" "$TMP/fakebin"
+  printf '#!/usr/bin/env bash\necho installed-tao\n' > "$TMP/src/tao-of-coding-main/bin/tao"
+  chmod +x "$TMP/src/tao-of-coding-main/bin/tao"
+  tar -czf "$TMP/payload.tar.gz" -C "$TMP/src" tao-of-coding-main
+
+  cat > "$TMP/fakebin/curl" <<'FAKE_CURL'
+#!/usr/bin/env bash
+set -euo pipefail
+dst=""
+while (($#)); do
+  case "$1" in
+    -o)
+      dst="$2"
+      shift 2
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+if [[ -z "$dst" ]]; then
+  echo "fake curl expected -o staging file" >&2
+  exit 64
+fi
+cp "$PAYLOAD" "$dst"
+FAKE_CURL
+  chmod +x "$TMP/fakebin/curl"
+
+  run env PATH="$TMP/fakebin:$PATH" PAYLOAD="$TMP/payload.tar.gz" TAO_HOME="$TMP/target" bash "$INSTALL"
+  [ "$status" -eq 0 ]
+  [ -f "$TMP/target/bin/tao" ]
+  [ -L "$TMP/.local/bin/tao" ]
+  [ "$(readlink "$TMP/.local/bin/tao")" = "$TMP/target/bin/tao" ]
+}
+
+@test "tarball 安裝沒有 curl 時可用 wget 下載 staging 檔" {
+  unset TAO_HOME
+
+  mkdir -p "$TMP/src/tao-of-coding-main/bin" "$TMP/fakebin"
+  printf '#!/usr/bin/env bash\necho installed-tao\n' > "$TMP/src/tao-of-coding-main/bin/tao"
+  chmod +x "$TMP/src/tao-of-coding-main/bin/tao"
+  tar -czf "$TMP/payload.tar.gz" -C "$TMP/src" tao-of-coding-main
+
+  for cmd in bash mkdir rm ln chmod mktemp tar gzip find head mv dirname cp; do
+    ln -s "$(command -v "$cmd")" "$TMP/fakebin/$cmd"
+  done
+  cat > "$TMP/fakebin/wget" <<'FAKE_WGET'
+#!/usr/bin/env bash
+set -euo pipefail
+dst=""
+while (($#)); do
+  case "$1" in
+    -O)
+      dst="$2"
+      shift 2
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+if [[ -z "$dst" ]]; then
+  echo "fake wget expected -O staging file" >&2
+  exit 64
+fi
+cp "$PAYLOAD" "$dst"
+FAKE_WGET
+  chmod +x "$TMP/fakebin/wget"
+
+  run /usr/bin/env PATH="$TMP/fakebin" PAYLOAD="$TMP/payload.tar.gz" TAO_HOME="$TMP/target" /bin/bash "$INSTALL"
+  [ "$status" -eq 0 ]
+  [ -f "$TMP/target/bin/tao" ]
+}
