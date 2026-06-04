@@ -28,7 +28,7 @@ tao enable                # 寫入 orchestrator 受管區塊（預設 AGENTS.md�
 
 宿主目標檔提醒：`tao enable` 預設寫 `AGENTS.md`，適合 Codex / Antigravity 等 host-agnostic 流程；Claude Code 專案建議改用 `tao enable --target CLAUDE.md`。
 
-完成後，你的 agent 讀取宿主檔即以 orchestrator 身分運作。升級用 `tao upgrade`、卸載用 `tao remove`。
+完成後，你的 agent 讀取宿主檔即以 orchestrator 身分運作。升級用 `tao upgrade`；移除當前專案受管區塊用 `tao remove`。
 
 詳細選項、手動安裝與底層腳本見 [〈安裝配置〉](#安裝配置-installation)。
 
@@ -237,6 +237,20 @@ tao upgrade            # 升級 tao 本體（tarball 安裝會重抓；既有 cl
 ```
 
 `tao enable` 預設寫入 `AGENTS.md`（host-agnostic）：未給 `--target` 時一律建立/沿用當前資料夾的 `AGENTS.md`；要寫 Claude Code 的 `CLAUDE.md` 用 `tao enable --target CLAUDE.md`。它等同呼叫下方 `install-orchestrator.sh`，差別在免記腳本路徑、用絕對路徑。
+
+### 乾淨移除全域安裝
+
+`tao remove` 只移除當前專案的受管區塊，不會移除全域 `tao`。若要卸載全域安裝，可重新下載安裝器執行卸載：
+
+```bash
+# 只移除 ~/.local/bin/tao，保留 ~/.local/share/tao-of-coding
+curl -fsSL https://raw.githubusercontent.com/raybird/tao-of-coding/main/install.sh | bash -- --uninstall
+
+# 乾淨移除：移除 ~/.local/bin/tao，並刪除 TAO_HOME（預設 ~/.local/share/tao-of-coding）
+curl -fsSL https://raw.githubusercontent.com/raybird/tao-of-coding/main/install.sh | bash -- --uninstall --purge
+```
+
+`--purge` 只會在 `TAO_HOME` 看起來像 tao-of-coding 安裝目錄時刪除：必須同時存在 `bin/tao` 與 `skills/tao-of-opencode`。它不會掃描或修改其他專案的 `AGENTS.md` / `CLAUDE.md`，也不會移除你手動建立在宿主 skills 目錄中的 symlink。
 
 ### 進階：直接用底層腳本
 

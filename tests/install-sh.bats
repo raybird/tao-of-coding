@@ -36,6 +36,35 @@ teardown() {
   [ -f "$REPO_ROOT/bin/tao" ]
 }
 
+@test "--uninstall --purge 移除 symlink 並刪除 TAO_HOME" {
+  install_home="$TMP/installed-tao"
+  mkdir -p "$install_home/bin" "$install_home/skills/tao-of-opencode"
+  printf '#!/usr/bin/env bash\n' > "$install_home/bin/tao"
+
+  TAO_HOME="$install_home" bash "$INSTALL" --link-only
+  run env TAO_HOME="$install_home" bash "$INSTALL" --uninstall --purge
+
+  [ "$status" -eq 0 ]
+  [ ! -e "$TMP/.local/bin/tao" ]
+  [ ! -e "$install_home" ]
+}
+
+@test "--uninstall --purge 拒刪不像 tao 安裝的 TAO_HOME" {
+  unsafe_home="$TMP/not-tao"
+  mkdir -p "$unsafe_home"
+  printf 'keep\n' > "$unsafe_home/important.txt"
+
+  run env TAO_HOME="$unsafe_home" bash "$INSTALL" --uninstall --purge
+
+  [ "$status" -eq 1 ]
+  [ -f "$unsafe_home/important.txt" ]
+}
+
+@test "--purge 未搭配 --uninstall 時報錯" {
+  run bash "$INSTALL" --purge
+  [ "$status" -eq 1 ]
+}
+
 @test "未知參數 exit 1" {
   run bash "$INSTALL" --bogus
   [ "$status" -eq 1 ]

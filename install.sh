@@ -13,20 +13,28 @@ TAO_HOME="${TAO_HOME:-$DEFAULT_HOME}"
 REF="main"
 UNINSTALL=0
 LINK_ONLY=0
+PURGE=0
 
 while (($#)); do
   case "$1" in
     --dir)  TAO_HOME="$2"; shift 2 ;;
     --ref)  REF="$2"; shift 2 ;;
     --uninstall) UNINSTALL=1; shift ;;
+    --purge) PURGE=1; shift ;;
     --link-only) LINK_ONLY=1; shift ;;   # 跳過 clone/pull，只連結（測試 / 維護者用）
     -h|--help)
-      echo "用法：install.sh [--dir <path>] [--ref <branch|tag>] [--uninstall] [--link-only]"
+      echo "用法：install.sh [--dir <path>] [--ref <branch|tag>] [--uninstall [--purge]] [--link-only]"
       echo "預設以 GitHub tarball 下載安裝，不需 git clone；既有 .git 安裝才用 git pull。"
+      echo "--uninstall 只移除 tao 指令連結；加 --purge 會一併刪除 TAO_HOME。"
       exit 0 ;;
     *) echo "install.sh: 未知參數 '$1'" >&2; exit 1 ;;
   esac
 done
+
+if [[ "$PURGE" -eq 1 && "$UNINSTALL" -ne 1 ]]; then
+  echo "install.sh: --purge 只能搭配 --uninstall 使用。" >&2
+  exit 1
+fi
 
 require_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -64,7 +72,17 @@ fi
 
 if [[ "$UNINSTALL" -eq 1 ]]; then
   rm -f "$BIN_DIR/tao"
-  echo "已移除 $BIN_DIR/tao。內容仍在 $TAO_HOME（手動刪除：rm -rf \"$TAO_HOME\"）"
+  if [[ "$PURGE" -eq 1 ]]; then
+    if [[ -f "$TAO_HOME/bin/tao" && -d "$TAO_HOME/skills/tao-of-opencode" ]]; then
+      rm -rf "$TAO_HOME"
+      echo "已移除 $BIN_DIR/tao，並刪除 $TAO_HOME。"
+    else
+      echo "拒絕刪除：$TAO_HOME 看起來不像 tao-of-coding 安裝目錄。" >&2
+      exit 1
+    fi
+  else
+    echo "已移除 $BIN_DIR/tao。內容仍在 $TAO_HOME（乾淨移除：加 --purge）"
+  fi
   exit 0
 fi
 
